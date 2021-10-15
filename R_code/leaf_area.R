@@ -30,6 +30,6 @@ leaf.area <- run.ij(path.imagej = imagej.localaddress,
 leaf.area <- leaf.area %>%
   tidyr::separate(col = "sample", 
            sep = "(_*)[_]_*",
-           into = c("rep", "n.trt", "inoc")) %>%
+           into = c("rep", "n.trt", "inoc"))
 
 
