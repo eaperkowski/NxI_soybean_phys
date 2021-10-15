@@ -4,4 +4,4 @@ This repo contains raw data, R code, and other analyses for the leaf physiology 
 
 Repo currently includes two folders as placeholders:
  - 1. aci_data = raw Licor 6800 data for all A/Ci curve files. Data are raw files, so are not cleaned
- - 2. leaf_data = leaf area images curated from flat-bed scanner. JPEG images with file names corresponding with pot ID codes. Leaf area to be determined using "LeafArea" R package
+ - 2. leaf_area = leaf area images curated from flat-bed scanner. JPEG images with file names corresponding with pot ID codes. Leaf area to be determined using "LeafArea" R package
