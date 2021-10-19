@@ -235,7 +235,10 @@ aci.coef <- aci.coef %>%
          Jmax25.TPU = standardizeLimitations(estimate = Jmax.TPU,
                                              estimate.type = "Jmax",
                                              tLeaf = leaf.temp,
-                                             tGrow = 30)) %>%
+                                             tGrow = 30),
+         Rd.Vcmax = Rd.TPU / Vcmax.TPU,
+         Jmax25.Vcmax25 = Jmax25.TPU / Vcmax25.TPU,
+         Vcmax.gs = Vcmax.TPU / gsw) %>%
   data.frame()
 
 head(aci.coef)
