@@ -95,7 +95,7 @@ df.aci <- lapply(file.list, read.csv)
 aci.merged <- df.aci %>%
   merge_all() %>%
   group_by(id) %>%
-  dplyr::select(id, machine, A, Ci, gsw, 
+  dplyr::select(id, machine, A, Ci, Ca, gsw, 
          CO2_s,	CO2_r,	H2O_s,	H2O_r,
          Qin, VPDleaf, Flow,	Tair,	TleafEB) %>%
   arrange(id) %>%
@@ -124,6 +124,21 @@ aci.temp <- aci.merged %>%
   filter(keep.row == "yes") %>%
   group_by(id) %>%
   summarize(leaf.temp = mean(TleafEB, na.rm = TRUE))
+
+#####################################################################
+# Extract A400, Ci:Ca, gsw values from each ID
+#####################################################################
+a.gs <- aci.merged %>%
+  filter(keep.row == "yes") %>%
+  group_by(id) %>%
+  filter(CO2_r > 350 & CO2_r < 425) %>%
+  filter(row_number() == 1) %>%
+  dplyr::select(id, rep, n.trt, inoc, machine, A, Ci, Ca, gsw) %>%
+  mutate(iwue = A/gsw,
+         ci.ca = Ci / Ca) %>%
+  data.frame()
+a.gs
+
 
 #####################################################################
 # Run A/Ci curves with TPU limitation
@@ -191,6 +206,7 @@ aci.coef <- aci.tpu %>%
   arrange(rep) %>%
   mutate(block = rep(1:4, each = 16)) %>%
   full_join(aci.temp) %>%
+  full_join(a.gs) %>%
   data.frame()
 
 ## Create data frame with id and machine, join with aci.coef file
