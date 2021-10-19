@@ -1,0 +1,65 @@
+,id,acceptable.curve,notes
+1,r1_hn_ni,yes,great fit
+2,r1_hn_yi,yes,great fit
+3,r1_ln_ni,yes,questionable TPU fit (seems negligible with Jmax)
+4,r1_ln_yi,yes,TPU fit with three points; otherwise a good curve
+5,r10_hn_ni,yes,TPU fit with four points; great curve
+6,r10_hn_yi,yes,great fit
+7,r10_ln_ni,yes,robust TPU fit
+8,r10_ln_yi,yes,great fit
+9,r11_hn_ni,yes,great fit
+10,r11_hn_yi,yes,Textbook curve; no TPU limitation
+11,r11_ln_ni,yes,great fit
+12,r11_ln_yi,YES,questionable TPU fit (seems negligible with Jmax)
+13,r12_hn_ni,yes,great fit
+14,r12_hn_yi,yes,great fit
+15,r12_ln_ni,yes,great fit
+16,r12_ln_yi,yes,great fit
+17,r13_hn_ni,yes,great fit
+18,r13_hn_yi,yes,great fit
+19,r13_ln_ni,yes,great fit
+20,r13_ln_yi,yes,questionable TPU fit (seems negligible with Jmax)
+21,r14_hn_ni,yes,great fit
+22,r14_hn_yi,yes,great fit
+23,r14_ln_ni,yes,great fit; TPU fit with 5 points
+24,r14_ln_yi,yes,great fit
+25,r15_hn_ni,yes,great fit
+26,r15_hn_yi,yes,great fit
+27,r15_ln_ni,yes,great fit; TPU fit with 6 points
+28,r15_ln_yi,yes,great fit
+29,r16_hn_ni,yes,great fit; TPU fit with 3 points
+30,r16_hn_yi,yes,great fit
+31,r16_ln_ni,yes,great fit
+32,r16_ln_yi,yes,questionable TPU fit (seems negligible with Jmax)
+33,r2_hn_ni,yes,great fit- TPU fit with four points
+34,r2_hn_yi,yes,great fit- TPU fit with 3 points
+35,r2_ln_ni,yes,great fit
+36,r2_ln_yi,yes,questionable TPU fit (seems negligible with Jmax)
+37,r3_hn_ni,yes,great fit
+38,r3_hn_yi,yes,great fit; no TPU limitation evident
+39,r3_ln_ni,yes,great fit; no TPU limitation evident
+40,r3_ln_yi,yes,great fit; TPU fit with 3 points
+41,r4_hn_ni,N/A,need to fit without Rd- no measured Rd paired with curve
+42,r4_hn_yi,yes,great fit; TPU fit with 5 points
+43,r4_ln_ni,yes,great fit
+44,r4_ln_yi,yes,great fit
+45,r5_hn_ni,yes,great fit
+46,r5_hn_yi,yes,great fit
+47,r5_ln_ni,yes,great fit; robust TPU fit
+48,r5_ln_yi,yes,great fit
+49,r6_hn_ni,yes,great fit
+50,r6_hn_yi,yes,great fit- questionable TPU limitation (fit using two points)
+51,r6_ln_ni,maybe,questionable TPU fit
+52,r6_ln_yi,yes,great fit
+53,r7_hn_ni,yes,great fit- questionable TPU limitation (fit using one point)
+54,r7_hn_yi,yes,great fit- no TPU limitation evident
+55,r7_ln_ni,yes,questionable TPU fit (seems negligible with Jmax)
+56,r7_ln_yi,yes,can remove high point at 400 ppm CO2 to improve model fit
+57,r8_hn_ni,yes,great fit- no TPU limitation evident
+58,r8_hn_yi,yes,great fit- questionable TPU limitation (fit using two points)
+59,r8_ln_ni,yes,questionable TPU fit (seems negligible with Jmax)
+60,r8_ln_yi,yes,great fit
+61,r9_hn_ni,yes,great fit- no TPU limitation evident
+62,r9_hn_yi,yes,great fit- no TPU limitation evident
+63,r9_ln_ni,yes,great fit
+64,r9_ln_yi,yes,great fit
