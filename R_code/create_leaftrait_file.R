@@ -10,6 +10,11 @@ library(reshape)
 library(plantecophys)
 
 #####################################################################
+# Load temp standardization function for Vcmax/Jmax
+#####################################################################
+source("/Users/eaperkowski/git/r_functions/standardizeLimitations.R")
+
+#####################################################################
 # Load .csv file with dry weight data
 #####################################################################
 #dry.wgt <- read.csv("../data/dry.wgt.csv")
@@ -115,7 +120,11 @@ aci.merged$keep.row[c(31, 38, 90, 97, 148, 155, 163, 170, 214,
                       526, 698, 705, 749, 755, 802, 809, 815,
                       871, 872, 922, 929, 937, 938)] <- "no"
 
-aci.merged
+aci.temp <- aci.merged %>%
+  filter(keep.row == "yes") %>%
+  group_by(id) %>%
+  summarize(leaf.temp = mean(TleafEB, na.rm = TRUE))
+
 #####################################################################
 # Run A/Ci curves with TPU limitation
 #####################################################################
@@ -161,7 +170,8 @@ aci.r4_hn_ni <- data.frame(id = "r4_hn_ni",
 head(aci.r4_hn_ni)
 
 ## Extract coefficients and separate id into rep, n.trt, and inoc.
-## Also, merge r4_hn_ni coefficients
+## Also, merge r4_hn_ni coefficients. Add leaf temp for standardizing
+## Vcmax and Jmax to 25 deg C
 aci.coef <- aci.tpu %>%
   coef() %>%
   full_join(aci.r4_hn_ni) %>%
@@ -180,6 +190,7 @@ aci.coef <- aci.tpu %>%
          inoc = toupper(inoc)) %>%
   arrange(rep) %>%
   mutate(block = rep(1:4, each = 16)) %>%
+  full_join(aci.temp) %>%
   data.frame()
 
 ## Create data frame with id and machine, join with aci.coef file
@@ -195,70 +206,88 @@ aci.coef <- aci.merged %>%
 head(aci.coef)
 
 #####################################################################
-# Run A/Ci curves without TPU limitation
+# Standardize Vcmax and Jmax to 25 deg C
 #####################################################################
-aci.notpu <- aci.merged %>%
-  filter(keep.row == "yes") %>%
-  fitacis(group = "id",
-          varnames = list(ALEAF = "A",
-                          Tleaf = "TleafEB",
-                          Ci = "Ci",
-                          PPFD = "Qin",
-                          Rd = "resp"),
-          fitTPU = FALSE,
-          useRd = TRUE,
-          Tcorrect = FALSE)
+## NOTE: tGrow is set to 30 arbitrarily, will be replaced by mean temp
+## with HOBO data once experiment is taken down
+aci.coef <- aci.coef %>%
+  group_by(id) %>%
+  mutate(Vcmax25.TPU = standardizeLimitations(estimate = Vcmax.TPU,
+                                              estimate.type = "Vcmax",
+                                              tLeaf = leaf.temp,
+                                              tGrow = 30),
+         Jmax25.TPU = standardizeLimitations(estimate = Jmax.TPU,
+                                             estimate.type = "Jmax",
+                                             tLeaf = leaf.temp,
+                                             tGrow = 30)) %>%
+  data.frame()
 
-## Remove r4_hn_ni from list (no fit because no Rd value)
-aci.notpu$r4_hn_ni <- NULL
+head(aci.coef)
 
-## Do fitaci fxn for r4_hn_ni with useRd = FALSE
-r4_hn_ni.notpu <- fitaci(subset(aci.merged, id == "r4_hn_ni"),
-                   varnames = list(ALEAF = "A",
-                                   Tleaf = "TleafEB",
-                                   Ci = "Ci",
-                                   PPFD = "Qin"),
-                   fitTPU = FALSE,
-                   useRd = FALSE,
-                   Tcorrect = FALSE)
-
-## Check model fit for r4_hn_ni
-plot(r4_hn_ni.notpu)
-
-## Create data frame by transposing r4_hn_ni coefficients, to be
-## merged back into larger fitacis list
-aci.r4_hn_ni.notpu <- data.frame(id = "r4_hn_ni",
-                           t(coef(r4_hn_ni.notpu)))
-
-## Check that transposing looks right. Should have one column with id
-## on left column with column for each of Vcmax, Jmax, Rd, and TPU
-head(aci.r4_hn_ni.notpu)
-
-## Extract coefficients and separate id into rep, n.trt, and inoc.
-## Also, merge r4_hn_ni coefficients
-aci.coef <- aci.notpu %>%
-  coef() %>%
-  full_join(aci.r4_hn_ni.notpu) %>%
-  full_join(aci.coef) %>%
-  dplyr::select(id, rep, n.trt,
-                inoc, block, machine,
-                Vcmax.noTPU = Vcmax, 
-                Jmax.noTPU = Jmax, 
-                Rd,
-                Vcmax.TPU,
-                Jmax.TPU,
-                TPU.TPU) %>%
-  mutate(Rd.Vcmax.noTPU = Rd / Vcmax.noTPU,
-         Rd.Vcmax.TPU = Rd / Vcmax.TPU) %>%
-  full_join(leaf.area) 
+# #####################################################################
+# # Run A/Ci curves without TPU limitation
+# #####################################################################
+# aci.notpu <- aci.merged %>%
+#   filter(keep.row == "yes") %>%
+#   fitacis(group = "id",
+#           varnames = list(ALEAF = "A",
+#                           Tleaf = "TleafEB",
+#                           Ci = "Ci",
+#                           PPFD = "Qin",
+#                           Rd = "resp"),
+#           fitTPU = FALSE,
+#           useRd = TRUE,
+#           Tcorrect = FALSE)
+# 
+# ## Remove r4_hn_ni from list (no fit because no Rd value)
+# aci.notpu$r4_hn_ni <- NULL
+# 
+# ## Do fitaci fxn for r4_hn_ni with useRd = FALSE
+# r4_hn_ni.notpu <- fitaci(subset(aci.merged, id == "r4_hn_ni"),
+#                    varnames = list(ALEAF = "A",
+#                                    Tleaf = "TleafEB",
+#                                    Ci = "Ci",
+#                                    PPFD = "Qin"),
+#                    fitTPU = FALSE,
+#                    useRd = FALSE,
+#                    Tcorrect = FALSE)
+# 
+# ## Check model fit for r4_hn_ni
+# plot(r4_hn_ni.notpu)
+# 
+# ## Create data frame by transposing r4_hn_ni coefficients, to be
+# ## merged back into larger fitacis list
+# aci.r4_hn_ni.notpu <- data.frame(id = "r4_hn_ni",
+#                            t(coef(r4_hn_ni.notpu)))
+# 
+# ## Check that transposing looks right. Should have one column with id
+# ## on left column with column for each of Vcmax, Jmax, Rd, and TPU
+# head(aci.r4_hn_ni.notpu)
+# 
+# ## Extract coefficients and separate id into rep, n.trt, and inoc.
+# ## Also, merge r4_hn_ni coefficients
+# aci.coef <- aci.notpu %>%
+#   coef() %>%
+#   full_join(aci.r4_hn_ni.notpu) %>%
+#   full_join(aci.coef) %>%
+#   dplyr::select(id, rep, n.trt,
+#                 inoc, block, machine,
+#                 Vcmax.noTPU = Vcmax, 
+#                 Jmax.noTPU = Jmax, 
+#                 Rd,
+#                 Vcmax.TPU,
+#                 Jmax.TPU,
+#                 TPU.TPU) %>%
+#   mutate(Rd.Vcmax.noTPU = Rd / Vcmax.noTPU,
+#          Rd.Vcmax.TPU = Rd / Vcmax.TPU) %>%
+#   full_join(leaf.area) 
 
 ## Check aci.coef data frame. Should have coefficients with and without
 ## TPU fit. Rd is the same across all fits, so only including single Rd
 ## value. Includes Rd:Vcmax with and without TPU and focal leaf area. 
 ## Should also include concatenated id, and columns for rep, n.trt, inoc,
 ## block number, and machine
-head(aci.coef)
-
+#head(aci.coef)
 
 ## Write .csv file for leaf trait data
 write.csv(aci.coef, "../data/trait_data.csv")
