@@ -17,7 +17,8 @@ source("/Users/eaperkowski/git/r_functions/standardizeLimitations.R")
 #####################################################################
 # Load .csv file with dry weight data
 #####################################################################
-#dry.wgt <- read.csv("../data/dry.wgt.csv")
+dry.wgt <- read.csv("../data/dry.biomass.csv")
+dry.wgt$id <- toupper(dry.wgt$id)
 
 
 #####################################################################
@@ -33,25 +34,29 @@ leaf.area <- run.ij(path.imagej = imagej.localaddress,
                     distance.pixel = 117.9034,
                     known.distance = 1,
                     set.memory = 30)
+head(leaf.area)
 
 ## Separate id into rep, n.trt, and inoc and rename leaf area column
 ## Then, remove R from rep name a add a leading zero for all single 
-## digit reps
+## digit reps. Also add block and other leaf traits (sla, narea)
 leaf.area <- leaf.area %>%
-  #full_join(dry.wgt) %>%
-  separate(col = "sample", 
+  dplyr::rename(id = sample,
+                focal.area = total.leaf.area) %>%
+  left_join(dry.wgt) %>%
+  separate(col = "id", 
            sep = "(_*)[_]_*",
            into = c("rep", "n.trt", "inoc"),
            remove = FALSE) %>%
   mutate(rep = gsub("R", "", rep),
                 rep = str_pad(rep, width=2, side="left", pad="0"),
-         sample = tolower(sample)) %>%
-  dplyr::rename(focal.area = total.leaf.area,
-                id = sample) %>%
+         id = tolower(id)) %>%
   arrange(rep) %>%
-  mutate(block = rep(1:4, each = 16))
-         #sla = dry.wgt / focal.area,
+  mutate(block = rep(1:4, each = 16),
+         sla = focal.area / dry.biomass * 0.01) # SLA is in m^2 g^-1
          #narea = n.leaf / sla)
+
+## Check data frame
+head(leaf.area)
 
 #####################################################################
 # Determine respiration values - to later be merged to A/Ci files
@@ -70,11 +75,20 @@ df.resp <- lapply(file.list, read.csv)
 resp.merged <- df.resp %>%
   merge_all() %>%
   group_by(id) %>%
-  dplyr::select(id, A) %>%
+  dplyr::select(id, A, TleafEB) %>%
   mutate(resp = abs(A)) %>%
-  summarize(resp = mean(resp, na.rm = TRUE)) %>%
+  summarize(resp = mean(resp, na.rm = TRUE),
+            tleaf = mean(TleafEB, na.rm = TRUE),
+            resp25 = standardizeLimitations(resp, estimate.type = "Rd",
+                                            tLeaf =, tGrow = )) %>%
   data.frame()
 resp.merged
+
+## Should we temp standardize Rd?
+mean(resp.merged$tleaf, na.rm = TRUE)
+sd(resp.merged$tleaf, na.rm = TRUE)
+## Will temp standardize Rd since the mean of 
+## Tleaf is 25.3 +/- 0.159. 
 
 #####################################################################
 # Load A/Ci curves, put in central data frame, add respiration means,
