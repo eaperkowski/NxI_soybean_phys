@@ -15,11 +15,7 @@ emm_options(opt.digits = FALSE)
 data <- read.csv("../data/trait_data.csv",
                  na.strings = "NA")
 
-## Add Rd:Vcmax, Jmax25:Vcmax25, Vcmax:gs column
-data$Rd.Vcmax <- data$Rd.TPU / data$Vcmax.TPU
-data$Jmax25.Vcmax25 <- data$Jmax25.TPU / data$Vcmax25.TPU
-data$Vcmax.gs <-  data$Vcmax.TPU / data$gsw
-
+## Check data
 head(data)
 
 ##########################################################################
@@ -44,6 +40,12 @@ r.squaredGLMM(a400)
 # Pairwise comparisons
 emmeans(a400, pairwise~n.trt)
 
+# Emmean output for fig making
+a400.pairwise <- data.frame(variable = "a400",
+                            cld(emmeans(a400,
+                                        ~n.trt*inoc),
+                                Letters = LETTERS))
+
 ##########################################################################
 ## Vcmax25 with TPU
 ##########################################################################
@@ -66,6 +68,12 @@ r.squaredGLMM(vcmax25)
 # Pairwise comparisons
 emmeans(vcmax25, pairwise~n.trt) # Nitrogen addition decreases Vcmax25??
 
+# Emmean output for fig making
+vcmax.pairwise <- data.frame(variable = "vcmax25",
+                             cld(emmeans(vcmax25,
+                                         ~n.trt*inoc),
+                                 Letters = LETTERS))
+
 ##########################################################################
 ## Jmax25 with TPU
 ##########################################################################
@@ -85,8 +93,14 @@ summary(jmax25)
 Anova(jmax25)
 r.squaredGLMM(jmax25)
 
-# Pairwise
+# Pairwise comparisons
 emmeans(jmax25, pairwise~n.trt) # Nitrogen addition decreases Jmax25?
+
+# Emmean output for fig making
+jmax.pairwise <- data.frame(variable = "jmax25",
+                             cld(emmeans(jmax25,
+                                         ~n.trt*inoc),
+                                 Letters = LETTERS))
 
 ##########################################################################
 ## Jmax:Vcmax25 with TPU
@@ -114,6 +128,12 @@ r.squaredGLMM(jmax25.vcmax25)
 cld(emmeans(jmax25.vcmax25, pairwise~n.trt*inoc)) 
 # High nitrogen decreases Jmax25:Vcmax25 when plants are not inoculated
 # Nitrogen status has no impact on Jmax25:Vcmax25 when plants are inoculated
+
+# Emmean output for fig making
+jmax.vcmax.pairwise <- data.frame(variable = "jmax25:vcmax25",
+                                  cld(emmeans(jmax25.vcmax25,
+                                              ~n.trt*inoc),
+                                      Letters = LETTERS))
 
 ##########################################################################
 ## Rd 
@@ -143,6 +163,11 @@ emmeans(rd, pairwise~n.trt*inoc)
 # Low nitrogen, no inoculation has marginally lower Rd than high nitrogen,
 # yes inoculation
 
+# Emmean for fig making
+rd.pairwise <- data.frame(variable = "Rd",
+                          cld(emmeans(rd, ~n.trt*inoc),
+                              Letters = LETTERS))
+
 ##########################################################################
 ## Rd:Vcmax (Vcmax is not standardized since Rd is not temp standardized)
 ##########################################################################
@@ -169,11 +194,16 @@ emmeans(rd.vcmax, pairwise~n.trt)
 # High nitrogen increases Rd:Vcmax regardless of inoculation status
 # Driven by both an increase in Rd and reduction in Vcmax with increasing soil N
 
+# Emmean for fig making
+rd.vcmax.pairwise <- data.frame(variable = "rd:vcmax",
+                                cld(emmeans(rd.vcmax,
+                                            ~n.trt*inoc),
+                                    Letters = LETTERS))
+
 ##########################################################################
 ## Gs
 ##########################################################################
-gs <- lmer(gsw ~ n.trt * inoc + (1 | block),
-           data = data)
+gs <- lmer(gsw ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(gs)
@@ -192,11 +222,16 @@ r.squaredGLMM(gs)
 emmeans(gs, pairwise~n.trt)
 # Increasing nitrogen decreased stomatal conductance
 
+# Emmean for fig making
+gs.pairwise <- data.frame(variable = "rd:vcmax",
+                          cld(emmeans(gs,
+                                      ~n.trt*inoc),
+                              Letters = LETTERS))
+
 ##########################################################################
 ## Ci:Ca
 ##########################################################################
-cica <- lmer(ci.ca ~ n.trt * inoc + (1 | block),
-             data = data)
+cica <- lmer(ci.ca ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(cica)
@@ -214,6 +249,11 @@ r.squaredGLMM(cica)
 # Pairwise comparisons
 emmeans(cica, pairwise~n.trt)
 # Increasing nitrogen decreases Ci:Ca
+
+# Emmean for fig making
+cica.pairwise <- data.frame(variable = "ci.ca",
+                            cld(emmeans(cica, ~n.trt*inoc),
+                                Letters = LETTERS))
 
 ##########################################################################
 ## iWUE
@@ -238,6 +278,13 @@ r.squaredGLMM(iwue)
 emmeans(iwue, pairwise~n.trt)
 # Increasing nitrogen increases iWUE
 
+# Emmean for fig making
+iwue.pairwise <- data.frame(variable = "iwue",
+                            cld(emmeans(iwue,
+                                        ~n.trt*inoc),
+                                Letters = LETTERS))
+
+
 ##########################################################################
 ## Vcmax:gs
 ##########################################################################
@@ -261,5 +308,27 @@ r.squaredGLMM(vcmax.gs)
 emmeans(vcmax.gs, pairwise~n.trt)
 # Increasing nitrogen increases Vcmax:gs through a relatively
 # larger decrease in gs than Vcmax25
+
+# Emmean for fig making
+vcmax.gs.pairwise <- data.frame(variable = "vcmax.gs",
+                            cld(emmeans(vcmax.gs,
+                                        ~n.trt*inoc),
+                                Letters = LETTERS))
+
+
+##########################################################################
+## Make emmeans file
+##########################################################################
+comp.letters <- a400.pairwise %>%
+  full_join(vcmax.pairwise) %>%
+  full_join(jmax.pairwise) %>%
+  full_join(jmax.vcmax.pairwise) %>%
+  full_join(rd.pairwise) %>%
+  full_join(rd.vcmax.pairwise) %>%
+  full_join(gs.pairwise) %>%
+  full_join(cica.pairwise) %>%
+  full_join(iwue.pairwise) %>%
+  full_join(vcmax.gs.pairwise)
+  
 
 
