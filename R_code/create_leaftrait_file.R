@@ -214,6 +214,7 @@ aci.coef <- aci.tpu %>%
   mutate(block = rep(1:4, each = 16)) %>%
   full_join(aci.temp) %>%
   full_join(a.gs) %>%
+  full_join(leaf.area) %>%
   data.frame()
 
 ## Create data frame with id and machine, join with aci.coef file
