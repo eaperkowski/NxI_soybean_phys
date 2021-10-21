@@ -80,15 +80,9 @@ resp.merged <- df.resp %>%
   summarize(resp = mean(resp, na.rm = TRUE),
             tleaf = mean(TleafEB, na.rm = TRUE),
             resp25 = standardizeLimitations(resp, estimate.type = "Rd",
-                                            tLeaf =, tGrow = )) %>%
+                                            tLeaf = tleaf, tGrow = 30)) %>%
   data.frame()
 resp.merged
-
-## Should we temp standardize Rd?
-mean(resp.merged$tleaf, na.rm = TRUE)
-sd(resp.merged$tleaf, na.rm = TRUE)
-## Will temp standardize Rd since the mean of 
-## Tleaf is 25.3 +/- 0.159. 
 
 #####################################################################
 # Load A/Ci curves, put in central data frame, add respiration means,
@@ -153,7 +147,6 @@ a.gs <- aci.merged %>%
   data.frame()
 a.gs
 
-
 #####################################################################
 # Run A/Ci curves with TPU limitation
 #####################################################################
@@ -164,7 +157,7 @@ aci.tpu <- aci.merged %>%
                           Tleaf = "TleafEB",
                           Ci = "Ci",
                           PPFD = "Qin",
-                          Rd = "resp"),
+                          Rd = "resp25"),
           fitTPU = TRUE,
           useRd = TRUE,
           Tcorrect = FALSE)
@@ -250,9 +243,9 @@ aci.coef <- aci.coef %>%
                                              estimate.type = "Jmax",
                                              tLeaf = leaf.temp,
                                              tGrow = 30),
-         Rd.Vcmax = Rd.TPU / Vcmax.TPU,
+         Rd25.Vcmax25 = Rd.TPU / Vcmax25.TPU, # Rd is temp standardized, so using Vcmax25
          Jmax25.Vcmax25 = Jmax25.TPU / Vcmax25.TPU,
-         Vcmax.gs = Vcmax.TPU / gsw) %>%
+         Vcmax.gs = Vcmax.TPU / gsw) %>% # gs is not temp standardized, so using Vcmax
   data.frame()
 
 head(aci.coef)
