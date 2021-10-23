@@ -136,9 +136,9 @@ jmax.vcmax.pairwise <- data.frame(variable = "jmax25:vcmax25",
                                       Letters = LETTERS))
 
 ##########################################################################
-## Rd 
+## Rd (standardized to 25 deg C)
 ##########################################################################
-data$Rd.TPU[c(2, 7, 31)] <- NA
+data$Rd.TPU[c(7, 31)] <- NA
 
 rd <- lmer(log(Rd.TPU) ~ n.trt * inoc + (1 | block),
            data = data)
@@ -171,9 +171,9 @@ rd.pairwise <- data.frame(variable = "Rd",
 ##########################################################################
 ## Rd:Vcmax (Vcmax is not standardized since Rd is not temp standardized)
 ##########################################################################
-data$Rd.Vcmax[c(7, 31)] <- NA
+data$Rd25.Vcmax25[c(7)] <- NA
 
-rd.vcmax <- lmer(Rd.Vcmax ~ n.trt * inoc + (1 | block),
+rd.vcmax <- lmer(Rd25.Vcmax25 ~ n.trt * inoc + (1 | block),
                  data = data)
 
 # Check model assumptions
@@ -193,6 +193,8 @@ r.squaredGLMM(rd.vcmax)
 emmeans(rd.vcmax, pairwise~n.trt)
 # High nitrogen increases Rd:Vcmax regardless of inoculation status
 # Driven by both an increase in Rd and reduction in Vcmax with increasing soil N
+emmeans(rd.vcmax, pairwise~n.trt*inoc)
+
 
 # Emmean for fig making
 rd.vcmax.pairwise <- data.frame(variable = "rd:vcmax",
@@ -314,6 +316,87 @@ vcmax.gs.pairwise <- data.frame(variable = "vcmax.gs",
                             cld(emmeans(vcmax.gs,
                                         ~n.trt*inoc),
                                 Letters = LETTERS))
+
+##########################################################################
+## Specific leaf area
+##########################################################################
+sla <- lmer(sla ~ n.trt * inoc + (1 | block), 
+                 data = data)
+
+# Check model assumptions
+plot(sla)
+qqnorm(residuals(sla))
+qqline(residuals(sla))
+hist(residuals(sla))
+shapiro.test(residuals(sla))
+outlierTest(sla)
+
+# Model output
+summary(sla)
+Anova(sla)
+r.squaredGLMM(sla)
+
+# Pairwise comparisons
+emmeans(sla, pairwise~inoc)
+## Inoculated individuals generally have larger SLA than non-inoculated
+## individuals
+
+emmeans(sla, pairwise~n.trt)
+## Increasing soil nitrogen has a marginally positive effect on SLA
+
+##########################################################################
+## Focal leaf area
+##########################################################################
+fa <- lmer(focal.area ~ n.trt * inoc + (1 | block), 
+            data = data)
+
+# Check model assumptions
+plot(fa)
+qqnorm(residuals(fa))
+qqline(residuals(fa))
+hist(residuals(fa))
+shapiro.test(residuals(fa))
+outlierTest(fa)
+
+# Model output
+summary(fa)
+Anova(fa)
+r.squaredGLMM(fa)
+
+# Pairwise comparisons
+emmeans(fa, pairwise~inoc)
+## Inoculated individuals generally have larger leaves than non-inoculated
+## individuals
+
+emmeans(fa, pairwise~n.trt)
+## Increasing soil nitrogen generally increases leaf area
+
+##########################################################################
+## Focal leaf biomass (dry)
+##########################################################################
+focal.bio <- lmer(dry.biomass ~ n.trt * inoc + (1 | block), 
+           data = data)
+
+# Check model assumptions
+plot(focal.bio)
+qqnorm(residuals(focal.bio))
+qqline(residuals(focal.bio))
+hist(residuals(focal.bio))
+shapiro.test(residuals(focal.bio))
+outlierTest(focal.bio)
+
+# Model output
+summary(focal.bio)
+Anova(focal.bio)
+r.squaredGLMM(focal.bio)
+
+# Pairwise comparisons
+emmeans(focal.bio, pairwise~n.trt)
+## Increasing soil nitrogen generally increases dry biomass
+
+## NOTE: the marginal impact of n.trt on SLA was driven by a marginally
+## larger increase in leaf area than dry biomass (but both leaf area and
+## dry biomass increased)
 
 
 ##########################################################################
