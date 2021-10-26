@@ -12,14 +12,13 @@ library(plantecophys)
 #####################################################################
 # Load temp standardization function for Vcmax/Jmax
 #####################################################################
-source("/Users/eaperkowski/git/r_functions/standardizeLimitations.R")
+source("/Users/eaperkowski/git/r_functions/temp_standardize.R")
 
 #####################################################################
 # Load .csv file with dry weight data
 #####################################################################
 dry.wgt <- read.csv("../data/dry.biomass.csv")
 dry.wgt$id <- toupper(dry.wgt$id)
-
 
 #####################################################################
 # Determine leaf areas
@@ -79,8 +78,12 @@ resp.merged <- df.resp %>%
   mutate(resp = abs(A)) %>%
   summarize(resp = mean(resp, na.rm = TRUE),
             tleaf = mean(TleafEB, na.rm = TRUE),
-            resp25 = standardizeLimitations(resp, estimate.type = "Rd",
-                                            tLeaf = tleaf, tGrow = 30)) %>%
+            resp25 = temp_standardize(resp,
+                                      estimate.type = "Rd",
+                                      pft = "C3H",
+                                      standard.to = 25,
+                                      tLeaf = tleaf,
+                                      tGrow = 30)) %>%
   data.frame()
 resp.merged
 
@@ -197,11 +200,11 @@ head(aci.r4_hn_ni)
 aci.coef <- aci.tpu %>%
   coef() %>%
   full_join(aci.r4_hn_ni) %>%
-  dplyr::select(id, 
-         Vcmax.TPU = Vcmax, 
-         Jmax.TPU = Jmax, 
-         Rd.TPU = Rd, 
-         TPU.TPU = TPU) %>%
+  dplyr::select(id,
+                Vcmax,
+                Jmax,
+                Rd25 = Rd,
+                TPU) %>%
   separate(col = "id",
          sep = "(_*)[_]_*",
          into = c("rep", "n.trt", "inoc"),
@@ -222,12 +225,31 @@ aci.coef <- aci.merged %>%
   group_by(id) %>%
   summarize(machine = unique(machine)) %>%
   left_join(aci.coef) %>%
-  dplyr::select(id, rep, n.trt, inoc, block, machine, everything()) %>%
   data.frame()
 
 ## Check aci.coef data frame. Should have id, n.trt, inoc, machine, 
 ## model coefficients, and block as designated columns
 head(aci.coef)
+
+#####################################################################
+# Import HOBO data, determine mean temp over experiment. Will be added
+# as additional column to aci.coef based on block number and used
+# for tGrow call in temp_standardize fxn
+#####################################################################
+file.list <- list.files(path = "../hobo_temp",
+                        recursive = TRUE,
+                        pattern = "\\.csv$",
+                        full.names = TRUE)
+file.list <- setNames(file.list, file.list)
+df.tgrow <- lapply(file.list, read.csv, strip.white = TRUE)
+
+aci.coef <- df.tgrow %>%
+  merge_all() %>%
+  group_by(block) %>%
+  dplyr::summarize(tGrow = mean(temp, na.rm = TRUE)) %>%
+  slice(-5) %>%
+  right_join(aci.coef, by = "block")
+
 
 #####################################################################
 # Standardize Vcmax and Jmax to 25 deg C
@@ -236,17 +258,23 @@ head(aci.coef)
 ## with HOBO data once experiment is taken down
 aci.coef <- aci.coef %>%
   group_by(id) %>%
-  mutate(Vcmax25.TPU = standardizeLimitations(estimate = Vcmax.TPU,
-                                              estimate.type = "Vcmax",
-                                              tLeaf = leaf.temp,
-                                              tGrow = 30),
-         Jmax25.TPU = standardizeLimitations(estimate = Jmax.TPU,
-                                             estimate.type = "Jmax",
-                                             tLeaf = leaf.temp,
-                                             tGrow = 30),
-         Rd25.Vcmax25 = Rd.TPU / Vcmax25.TPU, # Rd is temp standardized, so using Vcmax25
-         Jmax25.Vcmax25 = Jmax25.TPU / Vcmax25.TPU,
-         Vcmax.gs = Vcmax.TPU / gsw) %>% # gs is not temp standardized, so using Vcmax
+  mutate(Vcmax25 = temp_standardize(estimate = Vcmax,
+                                    estimate.type = "Vcmax",
+                                    standard.to = 25,
+                                    tLeaf = leaf.temp,
+                                    tGrow = tGrow),
+         Jmax25 = temp_standardize(estimate = Jmax,
+                                   estimate.type = "Jmax",
+                                   standard.to = 25,
+                                   tLeaf = leaf.temp,
+                                   tGrow = tGrow),
+         Rd25.Vcmax25 = Rd25 / Vcmax25, # Rd is temp standardized, so using Vcmax25
+         Jmax25.Vcmax25 = Jmax25 / Vcmax25,
+         Vcmax.gs = Vcmax / gsw) %>% # gs is not temp standardized, so using Vcmax
+  dplyr::select(id, rep, n.trt, inoc, block, machine, A, Vcmax25, Jmax25, Rd25,
+                TPU, Rd25.Vcmax25, Jmax25.Vcmax25, gsw, ci.ca, iwue, Vcmax.gs,
+                sla, focal.area, dry.biomass, everything()) %>%
+  dplyr::rename_all(tolower) %>%
   data.frame()
 
 head(aci.coef)

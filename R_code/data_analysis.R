@@ -6,7 +6,7 @@ library(tidyverse)
 library(dplyr)
 library(MuMIn)
 library(multcomp)
-library(multcompView)
+library(rcompanion)
 
 ## Remove digit bounds in emmeans package
 emm_options(opt.digits = FALSE)
@@ -21,7 +21,7 @@ head(data)
 ##########################################################################
 ## A400
 ##########################################################################
-a400 <- lmer(A ~ n.trt * inoc + (1 | block),
+a400 <- lmer(a ~ n.trt * inoc + (1 | block),
              data = data)
 
 # Check model assumptions
@@ -44,12 +44,15 @@ emmeans(a400, pairwise~n.trt)
 a400.pairwise <- data.frame(variable = "a400",
                             cld(emmeans(a400,
                                         ~n.trt*inoc),
-                                Letters = LETTERS))
+                                Letters = LETTERS,
+                                decreasing = FALSE))
+a400.pairwise$.group <- trimws(a400.pairwise$.group, which = "both")
+a400.pairwise$compact <- c("B", "AB", "A", "A")
 
 ##########################################################################
 ## Vcmax25 with TPU
 ##########################################################################
-vcmax25 <- lmer(Vcmax25.TPU ~ n.trt * inoc + (1 | block),
+vcmax25 <- lmer(vcmax25 ~ n.trt * inoc + (1 | block),
                 data = data)
 
 # Check model assumptions
@@ -73,11 +76,13 @@ vcmax.pairwise <- data.frame(variable = "vcmax25",
                              cld(emmeans(vcmax25,
                                          ~n.trt*inoc),
                                  Letters = LETTERS))
+vcmax.pairwise$.group <- trimws(vcmax.pairwise$.group, which = "both")
+vcmax.pairwise$compact <- c("A", "A", "A", "A")
 
 ##########################################################################
 ## Jmax25 with TPU
 ##########################################################################
-jmax25 <- lmer(Jmax25.TPU ~ n.trt * inoc + (1 | block),
+jmax25 <- lmer(jmax25 ~ n.trt * inoc + (1 | block),
                data = data)
 
 # Check model assumptions
@@ -101,13 +106,15 @@ jmax.pairwise <- data.frame(variable = "jmax25",
                              cld(emmeans(jmax25,
                                          ~n.trt*inoc),
                                  Letters = LETTERS))
+jmax.pairwise$.group <- trimws(jmax.pairwise$.group, which = "both")
+jmax.pairwise$compact <- c("B", "AB", "AB", "A")
 
 ##########################################################################
 ## Jmax:Vcmax25 with TPU
 ##########################################################################
-data$Jmax25.Vcmax25[c(17, 62)] <- NA
+data$jmax25.vcmax25[c(46, 49)] <- NA
 
-jmax25.vcmax25 <- lmer(log(Jmax25.Vcmax25) ~ n.trt * inoc + (1 | block),
+jmax25.vcmax25 <- lmer(log(jmax25.vcmax25) ~ n.trt * inoc + (1 | block),
                        data = data)
 
 
@@ -130,17 +137,19 @@ cld(emmeans(jmax25.vcmax25, pairwise~n.trt*inoc))
 # Nitrogen status has no impact on Jmax25:Vcmax25 when plants are inoculated
 
 # Emmean output for fig making
-jmax.vcmax.pairwise <- data.frame(variable = "jmax25:vcmax25",
+jmax.vcmax.pairwise <- data.frame(variable = "jmax25.vcmax25",
                                   cld(emmeans(jmax25.vcmax25,
                                               ~n.trt*inoc),
                                       Letters = LETTERS))
+jmax.vcmax.pairwise$.group <- trimws(jmax.vcmax.pairwise$.group, which = "both")
+jmax.vcmax.pairwise$compact <- c("B", "AB", "A", "A")
 
 ##########################################################################
 ## Rd (standardized to 25 deg C)
 ##########################################################################
-data$Rd.TPU[c(7, 31)] <- NA
+data$rd25[c(35, 63)] <- NA
 
-rd <- lmer(log(Rd.TPU) ~ n.trt * inoc + (1 | block),
+rd <- lmer(log(rd25) ~ n.trt * inoc + (1 | block),
            data = data)
 
 # Check model assumptions
@@ -164,16 +173,18 @@ emmeans(rd, pairwise~n.trt*inoc)
 # yes inoculation
 
 # Emmean for fig making
-rd.pairwise <- data.frame(variable = "Rd",
+rd.pairwise <- data.frame(variable = "rd",
                           cld(emmeans(rd, ~n.trt*inoc),
                               Letters = LETTERS))
+rd.pairwise$.group <- trimws(rd.pairwise$.group, which = "both")
+rd.pairwise$compact <- rd.pairwise$.group
 
 ##########################################################################
 ## Rd:Vcmax (Vcmax is not standardized since Rd is not temp standardized)
 ##########################################################################
-data$Rd25.Vcmax25[c(7)] <- NA
+data$rd25.vcmax25[c(35)] <- NA
 
-rd.vcmax <- lmer(Rd25.Vcmax25 ~ n.trt * inoc + (1 | block),
+rd.vcmax <- lmer(rd25.vcmax25 ~ n.trt * inoc + (1 | block),
                  data = data)
 
 # Check model assumptions
@@ -197,10 +208,12 @@ emmeans(rd.vcmax, pairwise~n.trt*inoc)
 
 
 # Emmean for fig making
-rd.vcmax.pairwise <- data.frame(variable = "rd:vcmax",
+rd.vcmax.pairwise <- data.frame(variable = "rd.vcmax",
                                 cld(emmeans(rd.vcmax,
                                             ~n.trt*inoc),
                                     Letters = LETTERS))
+rd.vcmax.pairwise$.group <- trimws(rd.vcmax.pairwise$.group, which = "both")
+rd.vcmax.pairwise$compact <- rd.vcmax.pairwise$.group
 
 ##########################################################################
 ## Gs
@@ -225,14 +238,18 @@ emmeans(gs, pairwise~n.trt)
 # Increasing nitrogen decreased stomatal conductance
 
 # Emmean for fig making
-gs.pairwise <- data.frame(variable = "rd:vcmax",
+gs.pairwise <- data.frame(variable = "gsw",
                           cld(emmeans(gs,
                                       ~n.trt*inoc),
                               Letters = LETTERS))
+gs.pairwise$.group <- trimws(gs.pairwise$.group, which = "both")
+gs.pairwise$compact <- c("B", "B", "A", "A")
 
 ##########################################################################
 ## Ci:Ca
 ##########################################################################
+data$ci.ca[c(23)] <- NA
+
 cica <- lmer(ci.ca ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
@@ -256,6 +273,8 @@ emmeans(cica, pairwise~n.trt)
 cica.pairwise <- data.frame(variable = "ci.ca",
                             cld(emmeans(cica, ~n.trt*inoc),
                                 Letters = LETTERS))
+cica.pairwise$compact <- c("A", "A", "A", "A")
+
 
 ##########################################################################
 ## iWUE
@@ -285,12 +304,12 @@ iwue.pairwise <- data.frame(variable = "iwue",
                             cld(emmeans(iwue,
                                         ~n.trt*inoc),
                                 Letters = LETTERS))
-
+iwue.pairwise$compact <- iwue.pairwise$.group
 
 ##########################################################################
 ## Vcmax:gs
 ##########################################################################
-vcmax.gs <- lmer(log(Vcmax.gs) ~ n.trt * inoc + (1 | block), 
+vcmax.gs <- lmer(log(vcmax.gs) ~ n.trt * inoc + (1 | block), 
                  data = data)
 
 # Check model assumptions
@@ -316,6 +335,7 @@ vcmax.gs.pairwise <- data.frame(variable = "vcmax.gs",
                             cld(emmeans(vcmax.gs,
                                         ~n.trt*inoc),
                                 Letters = LETTERS))
+vcmax.gs.pairwise$compact <- vcmax.gs.pairwise$.group
 
 ##########################################################################
 ## Specific leaf area
@@ -344,6 +364,13 @@ emmeans(sla, pairwise~inoc)
 emmeans(sla, pairwise~n.trt)
 ## Increasing soil nitrogen has a marginally positive effect on SLA
 
+
+sla.pairwise <- data.frame(variable = "sla",
+                                cld(emmeans(sla,
+                                            ~n.trt*inoc),
+                                    Letters = LETTERS))
+sla.pairwise$.group <- trimws(sla.pairwise$.group, which = "both")
+sla.pairwise$compact <- sla.pairwise$.group
 ##########################################################################
 ## Focal leaf area
 ##########################################################################
@@ -370,6 +397,13 @@ emmeans(fa, pairwise~inoc)
 
 emmeans(fa, pairwise~n.trt)
 ## Increasing soil nitrogen generally increases leaf area
+
+fa.pairwise <- data.frame(variable = "focal.area",
+                                cld(emmeans(fa,
+                                            ~n.trt*inoc),
+                                    Letters = LETTERS))
+fa.pairwise$.group <- trimws(fa.pairwise$.group, which = "both")
+fa.pairwise$compact <- fa.pairwise$.group
 
 ##########################################################################
 ## Focal leaf biomass (dry)
@@ -398,9 +432,15 @@ emmeans(focal.bio, pairwise~n.trt)
 ## larger increase in leaf area than dry biomass (but both leaf area and
 ## dry biomass increased)
 
+focal.bio.pairwise <- data.frame(variable = "focal.biomass",
+                        cld(emmeans(focal.bio,
+                                    ~n.trt*inoc),
+                            Letters = LETTERS))
+focal.bio.pairwise$.group <- trimws(focal.bio.pairwise$.group, which = "both")
+focal.bio.pairwise$compact <- focal.bio.pairwise$.group
 
 ##########################################################################
-## Make emmeans file
+## Make merged emmeans file
 ##########################################################################
 comp.letters <- a400.pairwise %>%
   full_join(vcmax.pairwise) %>%
@@ -411,7 +451,13 @@ comp.letters <- a400.pairwise %>%
   full_join(gs.pairwise) %>%
   full_join(cica.pairwise) %>%
   full_join(iwue.pairwise) %>%
-  full_join(vcmax.gs.pairwise)
-  
+  full_join(vcmax.gs.pairwise) %>%
+  full_join(sla.pairwise) %>%
+  full_join(fa.pairwise) %>%
+  full_join(focal.bio.pairwise) %>%
+  data.frame()
+comp.letters  
 
+
+write.csv(comp.letters, "../data/comp.letters.csv")
 
