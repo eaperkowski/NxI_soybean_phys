@@ -625,6 +625,11 @@ comp.letters <- a400.pairwise %>%
   full_join(sla.pairwise) %>%
   full_join(fa.pairwise) %>%
   full_join(fb.pairwise) %>%
+  rename(comparison = treatment) %>%
+  unite("treatment", n.trt:inoc, remove = "FALSE") %>%
+  mutate(treatment = factor(treatment, levels = c("LN_NI", "HN_NI",
+                                                  "LN_YI", "HN_YI")),
+         compact = tolower(compact)) %>%
   data.frame()
 comp.letters
 
