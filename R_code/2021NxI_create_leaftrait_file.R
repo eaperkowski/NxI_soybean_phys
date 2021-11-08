@@ -17,7 +17,7 @@ source("/Users/eaperkowski/git/r_functions/temp_standardize.R")
 #####################################################################
 # Load .csv file with dry weight data
 #####################################################################
-dry.wgt <- read.csv("../data/dry.biomass.csv")
+dry.wgt <- read.csv("../data/2021NxI_biomass_TLA.csv")
 dry.wgt$id <- toupper(dry.wgt$id)
 
 #####################################################################
@@ -48,7 +48,8 @@ leaf.area <- leaf.area %>%
            remove = FALSE) %>%
   mutate(rep = gsub("R", "", rep),
                 rep = str_pad(rep, width=2, side="left", pad="0"),
-         id = tolower(id)) %>%
+         id = tolower(id),
+         total.leaf.area = focal.area + total.leaf.area) %>%
   arrange(rep) %>%
   mutate(block = rep(1:4, each = 16),
          sla = focal.area / dry.biomass * 0.01) # SLA is in m^2 g^-1
@@ -345,6 +346,6 @@ head(aci.coef)
 #head(aci.coef)
 
 ## Write .csv file for leaf trait data
-write.csv(aci.coef, "../data/trait_data.csv")
+write.csv(aci.coef, "../data/2021NxI_trait_data.csv")
 
 
