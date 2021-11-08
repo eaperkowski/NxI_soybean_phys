@@ -622,6 +622,7 @@ hist(residuals(tla))
 shapiro.test(residuals(tla))
 outlierTest(tla)
 
+
 # Model output
 summary(tla)
 Anova(tla)
