@@ -677,4 +677,4 @@ comp.letters <- a400.pairwise %>%
 comp.letters
 
 ## Write pairwise comparison csv file
-write.csv(comp.letters, "../data/comp.letters.csv")
+write.csv(comp.letters, "../data/2021NxI_compact_letters.csv")
