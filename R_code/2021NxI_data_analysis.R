@@ -12,7 +12,7 @@ library(rcompanion)
 emm_options(opt.digits = FALSE)
 
 ## Load data
-data <- read.csv("../data/trait_data.csv",
+data <- read.csv("../data/2021NxI_trait_data.csv",
                  na.strings = "NA")
 
 ## Check data
@@ -242,7 +242,7 @@ rd.pairwise.inoc <- data.frame(variable = "rd25",
 rd.pairwise <- rd.pairwise.full %>%
   full_join(rd.pairwise.soiln) %>%
   full_join(rd.pairwise.inoc) %>%
-  rename(emmean = response) %>%
+  dplyr::rename(emmean = response) %>%
   mutate(.group = trimws(.group, "both"),
          compact = .group)
 
@@ -568,7 +568,7 @@ fa.pairwise <- fa.pairwise.full %>%
 ## Focal leaf biomass (dry)
 ##########################################################################
 focal.bio <- lmer(dry.biomass ~ n.trt * inoc + (1 | block), 
-           data = data)
+                  data = data)
 
 # Check model assumptions
 plot(focal.bio)
@@ -610,6 +610,48 @@ fb.pairwise <- fb.pairwise.full %>%
          compact = .group)
 
 ##########################################################################
+## Total leaf area
+##########################################################################
+tla <- lmer(total.leaf.area ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(tla)
+qqnorm(residuals(tla))
+qqline(residuals(tla))
+hist(residuals(tla))
+shapiro.test(residuals(tla))
+outlierTest(tla)
+
+# Model output
+summary(tla)
+Anova(tla)
+r.squaredGLMM(tla)
+
+# Pairwise comparisons
+emmeans(tla, pairwise~n.trt*inoc)
+emmeans(tla, pairwise~n.trt)
+emmeans(tla, pairwise~inoc)
+
+
+tla.pairwise.full <- data.frame(variable = "total.leaf.area",
+                               treatment = "full",
+                               cld(emmeans(tla, ~n.trt*inoc),
+                                   Letters = LETTERS))
+tla.pairwise.soiln <- data.frame(variable = "total.leaf.area",
+                                treatment = "n.trt",
+                                cld(emmeans(tla, ~n.trt),
+                                    Letters = LETTERS))
+tla.pairwise.inoc <- data.frame(variable = "total.leaf.area",
+                               treatment = "inoc",
+                               cld(emmeans(tla, ~inoc),
+                                   Letters = LETTERS))
+tla.pairwise <- tla.pairwise.full %>%
+  full_join(tla.pairwise.soiln) %>%
+  full_join(tla.pairwise.inoc) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
 ## Make merged emmeans file
 ##########################################################################
 comp.letters <- a400.pairwise %>%
@@ -625,7 +667,8 @@ comp.letters <- a400.pairwise %>%
   full_join(sla.pairwise) %>%
   full_join(fa.pairwise) %>%
   full_join(fb.pairwise) %>%
-  rename(comparison = treatment) %>%
+  full_join(tla.pairwise) %>%
+  dplyr::rename(comparison = treatment) %>%
   unite("treatment", n.trt:inoc, remove = "FALSE") %>%
   mutate(treatment = factor(treatment, levels = c("LN_NI", "HN_NI",
                                                   "LN_YI", "HN_YI")),
