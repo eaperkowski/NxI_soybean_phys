@@ -653,7 +653,7 @@ pnue.pairwise <- pnue.pairwise.full %>%
   full_join(pnue.pairwise.soiln) %>%
   full_join(pnue.pairwise.inoc) %>%
   mutate(.group = trimws(.group, "both"),
-         compact = .group)
+         compact = c("B", "B", "A", "A", "B", "A", "A", "A"))
 
 ##########################################################################
 ## iWUE
@@ -806,7 +806,6 @@ qqline(residuals(tla))
 hist(residuals(tla))
 shapiro.test(residuals(tla))
 outlierTest(tla)
-
 
 # Model output
 summary(tla)
