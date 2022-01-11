@@ -14,9 +14,242 @@ emm_options(opt.digits = FALSE)
 ## Load data
 data <- read.csv("../data/2021NxI_trait_data.csv",
                  na.strings = "NA")
+data$narea.gs <- data$narea / data$gsw
 
 ## Check data
 head(data)
+
+##########################################################################
+## Nmass
+##########################################################################
+nmass <- lmer(leaf.n ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(nmass)
+qqnorm(residuals(nmass))
+qqline(residuals(nmass))
+hist(residuals(nmass))
+shapiro.test(residuals(nmass))
+outlierTest(nmass)
+
+# Model output
+summary(nmass)
+Anova(nmass)
+r.squaredGLMM(nmass)
+
+# Pairwise comparisons
+cld(emmeans(nmass, pairwise ~ n.trt * inoc))
+## Increasing soil nitrogen availability generally increases Nmass. The 
+## positive effect of inoculation status on Nmass was only observed at 
+## low nitrogen. There was no effect of inoculation status under high nitrogen
+## (Aside: perhaps because nodulation decreased to the point where plants
+## were acquiring nitrogen via direct uptake?)
+
+# Emmean for fig making
+nmass.pairwise.full <- data.frame(variable = "nmass",
+                                treatment = "full",
+                                cld(emmeans(nmass, ~n.trt*inoc),
+                                    Letters = LETTERS))
+nmass.pairwise.soiln <- data.frame(variable = "nmass",
+                                 treatment = "n.trt",
+                                 cld(emmeans(nmass,
+                                             ~n.trt),
+                                     Letters = LETTERS))
+nmass.pairwise.inoc <- data.frame(variable = "nmass",
+                                treatment = "inoc",
+                                cld(emmeans(nmass,
+                                            ~inoc),
+                                    Letters = LETTERS))
+nmass.pairwise <- nmass.pairwise.full %>%
+  full_join(nmass.pairwise.soiln) %>%
+  full_join(nmass.pairwise.inoc) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
+## Specific leaf area
+##########################################################################
+sla <- lmer(sla ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(sla)
+qqnorm(residuals(sla))
+qqline(residuals(sla))
+hist(residuals(sla))
+shapiro.test(residuals(sla))
+outlierTest(sla)
+
+# Model output
+summary(sla)
+Anova(sla)
+r.squaredGLMM(sla)
+
+# Pairwise comparisons
+emmeans(sla, pairwise~inoc)
+## Inoculated individuals generally have larger SLA than non-inoculated
+## individuals
+
+emmeans(sla, pairwise~n.trt)
+## Increasing soil nitrogen has a marginally positive effect on SLA
+
+# Emmean for fig making
+sla.pairwise.full <- data.frame(variable = "sla",
+                                treatment = "full",
+                                cld(emmeans(sla, ~n.trt*inoc),
+                                    Letters = LETTERS))
+sla.pairwise.soiln <- data.frame(variable = "sla",
+                                 treatment = "n.trt",
+                                 cld(emmeans(sla,
+                                             ~n.trt),
+                                     Letters = LETTERS))
+sla.pairwise.inoc <- data.frame(variable = "sla",
+                                treatment = "inoc",
+                                cld(emmeans(sla,
+                                            ~inoc),
+                                    Letters = LETTERS))
+sla.pairwise <- sla.pairwise.full %>%
+  full_join(sla.pairwise.soiln) %>%
+  full_join(sla.pairwise.inoc) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
+## Focal leaf area
+##########################################################################
+fa <- lmer(focal.area ~ n.trt * inoc + (1 | block), 
+           data = data)
+
+# Check model assumptions
+plot(fa)
+qqnorm(residuals(fa))
+qqline(residuals(fa))
+hist(residuals(fa))
+shapiro.test(residuals(fa))
+outlierTest(fa)
+
+# Model output
+summary(fa)
+Anova(fa)
+r.squaredGLMM(fa)
+
+# Pairwise comparisons
+emmeans(fa, pairwise~inoc)
+## Inoculated individuals generally have larger leaves than non-inoculated
+## individuals
+
+emmeans(fa, pairwise~n.trt)
+## Increasing soil nitrogen generally increases leaf area
+
+## Emmeans for fig making
+fa.pairwise.full <- data.frame(variable = "focal.area",
+                               treatment = "full",
+                               cld(emmeans(fa, ~n.trt*inoc),
+                                   Letters = LETTERS))
+fa.pairwise.soiln <- data.frame(variable = "focal.area",
+                                treatment = "n.trt",
+                                cld(emmeans(fa,  ~n.trt),
+                                    Letters = LETTERS))
+fa.pairwise.inoc <- data.frame(variable = "focal.area",
+                               treatment = "inoc",
+                               cld(emmeans(fa, ~inoc),
+                                   Letters = LETTERS))
+fa.pairwise <- fa.pairwise.full %>%
+  full_join(fa.pairwise.soiln) %>%
+  full_join(fa.pairwise.inoc) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
+## Focal leaf biomass (dry)
+##########################################################################
+focal.bio <- lmer(dry.biomass ~ n.trt * inoc + (1 | block), 
+                  data = data)
+
+# Check model assumptions
+plot(focal.bio)
+qqnorm(residuals(focal.bio))
+qqline(residuals(focal.bio))
+hist(residuals(focal.bio))
+shapiro.test(residuals(focal.bio))
+outlierTest(focal.bio)
+
+# Model output
+summary(focal.bio)
+Anova(focal.bio)
+r.squaredGLMM(focal.bio)
+
+# Pairwise comparisons
+emmeans(focal.bio, pairwise~n.trt)
+## Increasing soil nitrogen generally increases dry biomass
+
+## NOTE: the marginal impact of n.trt on SLA was driven by a marginally
+## larger increase in leaf area than dry biomass (but both leaf area and
+## dry biomass increased)
+
+fb.pairwise.full <- data.frame(variable = "focal.biomass",
+                               treatment = "full",
+                               cld(emmeans(focal.bio, ~n.trt*inoc),
+                                   Letters = LETTERS))
+fb.pairwise.soiln <- data.frame(variable = "focal.biomass",
+                                treatment = "n.trt",
+                                cld(emmeans(focal.bio, ~n.trt),
+                                    Letters = LETTERS))
+fb.pairwise.inoc <- data.frame(variable = "focal.biomass",
+                               treatment = "inoc",
+                               cld(emmeans(focal.bio, ~inoc),
+                                   Letters = LETTERS))
+fb.pairwise <- fb.pairwise.full %>%
+  full_join(fb.pairwise.soiln) %>%
+  full_join(fb.pairwise.inoc) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
+## Narea
+##########################################################################
+narea <- lmer(narea ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(narea)
+qqnorm(residuals(narea))
+qqline(residuals(narea))
+hist(residuals(narea))
+shapiro.test(residuals(narea))
+outlierTest(narea)
+
+# Model output
+summary(narea)
+Anova(narea)
+r.squaredGLMM(narea)
+
+# Pairwise comparisons
+cld(emmeans(narea, pairwise ~ n.trt * inoc))
+## Increasing soil nitrogen availability generally increases Narea. The 
+## positive effect of inoculation status on Narea was only observed at 
+## low nitrogen. There was no effect of inoculation status under high nitrogen
+## (Aside: perhaps because nodulation decreased to the point where plants
+## were acquiring nitrogen via direct uptake?)
+
+# Emmean for fig making
+narea.pairwise.full <- data.frame(variable = "narea",
+                                  treatment = "full",
+                                  cld(emmeans(narea, ~n.trt*inoc),
+                                      Letters = LETTERS))
+narea.pairwise.soiln <- data.frame(variable = "narea",
+                                   treatment = "n.trt",
+                                   cld(emmeans(narea,
+                                               ~n.trt),
+                                       Letters = LETTERS))
+narea.pairwise.inoc <- data.frame(variable = "narea",
+                                  treatment = "inoc",
+                                  cld(emmeans(narea,
+                                              ~inoc),
+                                      Letters = LETTERS))
+narea.pairwise <- narea.pairwise.full %>%
+  full_join(narea.pairwise.soiln) %>%
+  full_join(narea.pairwise.inoc) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
 
 ##########################################################################
 ## A400
@@ -469,143 +702,49 @@ vcmax.gs.pairwise <- vcmax.gs.pairwise.full %>%
   mutate(.group = trimws(.group, "both"),
          compact = .group)
 
-
 ##########################################################################
-## Specific leaf area
+## Narea:gs
 ##########################################################################
-sla <- lmer(sla ~ n.trt * inoc + (1 | block), 
+narea.gs <- lmer(log(narea.gs) ~ n.trt * inoc + (1 | block), 
                  data = data)
 
 # Check model assumptions
-plot(sla)
-qqnorm(residuals(sla))
-qqline(residuals(sla))
-hist(residuals(sla))
-shapiro.test(residuals(sla))
-outlierTest(sla)
+plot(narea.gs)
+qqnorm(residuals(narea.gs))
+qqline(residuals(narea.gs))
+hist(residuals(narea.gs))
+shapiro.test(residuals(narea.gs))
+outlierTest(narea.gs)
 
 # Model output
-summary(sla)
-Anova(sla)
-r.squaredGLMM(sla)
+summary(narea.gs)
+Anova(narea.gs)
+r.squaredGLMM(narea.gs)
 
 # Pairwise comparisons
-emmeans(sla, pairwise~inoc)
-## Inoculated individuals generally have larger SLA than non-inoculated
-## individuals
-
-emmeans(sla, pairwise~n.trt)
-## Increasing soil nitrogen has a marginally positive effect on SLA
+emmeans(narea.gs, pairwise~n.trt)
+# Increasing nitrogen increases Narea:gs throughn ... 
 
 # Emmean for fig making
-sla.pairwise.full <- data.frame(variable = "sla",
-                                treatment = "full",
-                                cld(emmeans(sla, ~n.trt*inoc),
-                                    Letters = LETTERS))
-sla.pairwise.soiln <- data.frame(variable = "sla",
-                                 treatment = "n.trt",
-                                 cld(emmeans(sla,
-                                             ~n.trt),
-                                     Letters = LETTERS))
-sla.pairwise.inoc <- data.frame(variable = "sla",
-                                 treatment = "inoc",
-                                 cld(emmeans(sla,
-                                             ~inoc),
-                                     Letters = LETTERS))
-sla.pairwise <- sla.pairwise.full %>%
-  full_join(sla.pairwise.soiln) %>%
-  full_join(sla.pairwise.inoc) %>%
-  mutate(.group = trimws(.group, "both"),
-         compact = .group)
-
-##########################################################################
-## Focal leaf area
-##########################################################################
-fa <- lmer(focal.area ~ n.trt * inoc + (1 | block), 
-            data = data)
-
-# Check model assumptions
-plot(fa)
-qqnorm(residuals(fa))
-qqline(residuals(fa))
-hist(residuals(fa))
-shapiro.test(residuals(fa))
-outlierTest(fa)
-
-# Model output
-summary(fa)
-Anova(fa)
-r.squaredGLMM(fa)
-
-# Pairwise comparisons
-emmeans(fa, pairwise~inoc)
-## Inoculated individuals generally have larger leaves than non-inoculated
-## individuals
-
-emmeans(fa, pairwise~n.trt)
-## Increasing soil nitrogen generally increases leaf area
-
-## Emmeans for fig making
-fa.pairwise.full <- data.frame(variable = "focal.area",
-                               treatment = "full",
-                               cld(emmeans(fa, ~n.trt*inoc),
-                                   Letters = LETTERS))
-fa.pairwise.soiln <- data.frame(variable = "focal.area",
-                                treatment = "n.trt",
-                                cld(emmeans(fa,  ~n.trt),
-                                    Letters = LETTERS))
-fa.pairwise.inoc <- data.frame(variable = "focal.area",
-                               treatment = "inoc",
-                               cld(emmeans(fa, ~inoc),
-                                    Letters = LETTERS))
-fa.pairwise <- fa.pairwise.full %>%
-  full_join(fa.pairwise.soiln) %>%
-  full_join(fa.pairwise.inoc) %>%
-  mutate(.group = trimws(.group, "both"),
-         compact = .group)
-
-##########################################################################
-## Focal leaf biomass (dry)
-##########################################################################
-focal.bio <- lmer(dry.biomass ~ n.trt * inoc + (1 | block), 
-                  data = data)
-
-# Check model assumptions
-plot(focal.bio)
-qqnorm(residuals(focal.bio))
-qqline(residuals(focal.bio))
-hist(residuals(focal.bio))
-shapiro.test(residuals(focal.bio))
-outlierTest(focal.bio)
-
-# Model output
-summary(focal.bio)
-Anova(focal.bio)
-r.squaredGLMM(focal.bio)
-
-# Pairwise comparisons
-emmeans(focal.bio, pairwise~n.trt)
-## Increasing soil nitrogen generally increases dry biomass
-
-## NOTE: the marginal impact of n.trt on SLA was driven by a marginally
-## larger increase in leaf area than dry biomass (but both leaf area and
-## dry biomass increased)
-
-fb.pairwise.full <- data.frame(variable = "focal.biomass",
-                               treatment = "full",
-                               cld(emmeans(focal.bio, ~n.trt*inoc),
-                                   Letters = LETTERS))
-fb.pairwise.soiln <- data.frame(variable = "focal.biomass",
-                                treatment = "n.trt",
-                                cld(emmeans(focal.bio, ~n.trt),
-                                    Letters = LETTERS))
-fb.pairwise.inoc <- data.frame(variable = "focal.biomass",
-                               treatment = "inoc",
-                               cld(emmeans(focal.bio, ~inoc),
-                                   Letters = LETTERS))
-fb.pairwise <- fb.pairwise.full %>%
-  full_join(fb.pairwise.soiln) %>%
-  full_join(fb.pairwise.inoc) %>%
+narea.gs.pairwise.full <- data.frame(variable = "narea.gs",
+                                     treatment = "full",
+                                     cld(emmeans(narea.gs, ~n.trt*inoc, 
+                                                 type = "response"),
+                                         Letters = LETTERS))
+narea.gs.pairwise.soiln <- data.frame(variable = "narea.gs",
+                                      treatment = "n.trt",
+                                      cld(emmeans(narea.gs, ~n.trt, 
+                                                  type = "response"),
+                                          Letters = LETTERS))
+narea.gs.pairwise.inoc <- data.frame(variable = "narea.gs",
+                                     treatment = "inoc",
+                                     cld(emmeans(narea.gs, ~inoc, 
+                                                 type = "response"),
+                                         Letters = LETTERS))
+narea.gs.pairwise <- vcmax.gs.pairwise.full %>%
+  full_join(narea.gs.pairwise.soiln) %>%
+  full_join(narea.gs.pairwise.inoc) %>%
+  dplyr::rename(emmean = response) %>%
   mutate(.group = trimws(.group, "both"),
          compact = .group)
 
@@ -655,7 +794,13 @@ tla.pairwise <- tla.pairwise.full %>%
 ##########################################################################
 ## Make merged emmeans file
 ##########################################################################
-comp.letters <- a400.pairwise %>%
+comp.letters <- nmass.pairwise %>%
+  full_join(sla.pairwise) %>%
+  full_join(fa.pairwise) %>%
+  full_join(fb.pairwise) %>%
+  full_join(narea.pairwise) %>%
+  full_join(tla.pairwise) %>%
+  full_join(a400.pairwise) %>%
   full_join(vcmax.pairwise) %>%
   full_join(jmax.pairwise) %>%
   full_join(jmax.vcmax.pairwise) %>%
@@ -665,10 +810,7 @@ comp.letters <- a400.pairwise %>%
   full_join(cica.pairwise) %>%
   full_join(iwue.pairwise) %>%
   full_join(vcmax.gs.pairwise) %>%
-  full_join(sla.pairwise) %>%
-  full_join(fa.pairwise) %>%
-  full_join(fb.pairwise) %>%
-  full_join(tla.pairwise) %>%
+  full_join(narea.gs.pairwise) %>%
   dplyr::rename(comparison = treatment) %>%
   unite("treatment", n.trt:inoc, remove = "FALSE") %>%
   mutate(treatment = factor(treatment, levels = c("LN_NI", "HN_NI",
