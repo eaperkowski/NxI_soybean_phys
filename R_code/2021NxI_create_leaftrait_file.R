@@ -15,10 +15,17 @@ library(plantecophys)
 source("/Users/eaperkowski/git/r_functions/temp_standardize.R")
 
 #####################################################################
-# Load .csv file with dry weight data
+# Load .csv file with dry weight data, leaf CN data, and
+# fluorescence data
 #####################################################################
 dry.wgt <- read.csv("../data/2021NxI_biomass_TLA.csv")
 dry.wgt$id <- toupper(dry.wgt$id)
+
+leaf.cn <- read.csv("../data/2021NxI_leafcn.csv")
+leaf.cn$id <- toupper(leaf.cn$id)
+
+fluorescence <- read.csv("../data/2021NxI_fluorescence.csv")
+fluorescence$id <- toupper(fluorescence$id)
 
 #####################################################################
 # Determine leaf areas
@@ -38,25 +45,30 @@ head(leaf.area)
 ## Separate id into rep, n.trt, and inoc and rename leaf area column
 ## Then, remove R from rep name a add a leading zero for all single 
 ## digit reps. Also add block and other leaf traits (sla, narea)
-leaf.area <- leaf.area %>%
+leaf.traits <- leaf.area %>%
   dplyr::rename(id = sample,
                 focal.area = total.leaf.area) %>%
-  left_join(dry.wgt) %>%
+  full_join(dry.wgt) %>%
+  full_join(leaf.cn) %>%
+  full_join(fluorescence) %>%
+  group_by(id) %>%
+  summarize_all(mean) %>%
   separate(col = "id", 
            sep = "(_*)[_]_*",
            into = c("rep", "n.trt", "inoc"),
            remove = FALSE) %>%
   mutate(rep = gsub("R", "", rep),
-                rep = str_pad(rep, width=2, side="left", pad="0"),
+                rep = str_pad(rep, width = 2, side = "left", pad = "0"),
          id = tolower(id),
          total.leaf.area = focal.area + total.leaf.area) %>%
   arrange(rep) %>%
   mutate(block = rep(1:4, each = 16),
-         sla = focal.area / dry.biomass * 0.01) # SLA is in m^2 g^-1
-         #narea = n.leaf / sla)
+         sla = focal.area / dry.biomass * 0.01, # SLA is in m^2 g^-1
+         narea = leaf.n / sla,
+         leaf.cn = leaf.c / leaf.n)
 
 ## Check data frame
-head(leaf.area)
+head(leaf.traits)
 
 #####################################################################
 # Determine respiration values - to later be merged to A/Ci files
@@ -218,7 +230,7 @@ aci.coef <- aci.tpu %>%
   mutate(block = rep(1:4, each = 16)) %>%
   full_join(aci.temp) %>%
   full_join(a.gs) %>%
-  full_join(leaf.area) %>%
+  full_join(leaf.traits) %>%
   data.frame()
 
 ## Create data frame with id and machine, join with aci.coef file
@@ -251,7 +263,6 @@ aci.coef <- df.tgrow %>%
   slice(-5) %>%
   right_join(aci.coef, by = "block")
 
-
 #####################################################################
 # Standardize Vcmax and Jmax to 25 deg C
 #####################################################################
@@ -274,7 +285,7 @@ aci.coef <- aci.coef %>%
          Vcmax.gs = Vcmax / gsw) %>% # gs is not temp standardized, so using Vcmax
   dplyr::select(id, rep, n.trt, inoc, block, machine, A, Vcmax25, Jmax25, Rd25,
                 TPU, Rd25.Vcmax25, Jmax25.Vcmax25, gsw, ci.ca, iwue, Vcmax.gs,
-                sla, focal.area, dry.biomass, everything()) %>%
+                sla, focal.area, dry.biomass, leaf.n, leaf.cn, narea, everything()) %>%
   dplyr::rename_all(tolower) %>%
   data.frame()
 
