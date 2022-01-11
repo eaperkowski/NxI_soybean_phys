@@ -787,7 +787,7 @@ narea.gs.pairwise.inoc <- data.frame(variable = "narea.gs",
                                      cld(emmeans(narea.gs, ~inoc, 
                                                  type = "response"),
                                          Letters = LETTERS))
-narea.gs.pairwise <- vcmax.gs.pairwise.full %>%
+narea.gs.pairwise <- narea.gs.pairwise.full %>%
   full_join(narea.gs.pairwise.soiln) %>%
   full_join(narea.gs.pairwise.inoc) %>%
   dplyr::rename(emmean = response) %>%
