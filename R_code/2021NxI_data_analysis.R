@@ -610,6 +610,52 @@ cica.pairwise <- cica.pairwise.full %>%
          compact = c("A", "A", "A", "A", "B", "A", "A", "A"))
 
 ##########################################################################
+## PNUE
+##########################################################################
+pnue <- lmer(pnue ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(pnue)
+qqnorm(residuals(pnue))
+qqline(residuals(pnue))
+hist(residuals(pnue))
+shapiro.test(residuals(pnue))
+outlierTest(pnue)
+
+# Model output
+summary(pnue)
+Anova(pnue)
+r.squaredGLMM(pnue)
+
+# Pairwise comparisons
+cld(emmeans(pnue, pairwise~n.trt*inoc))
+## Interaction indicated a marginal negative effect of inoculation status
+## on PNUE under low N fertilization, but no effect of inoculation status under
+## high N fertilization. N fertilization generally reduced PNUE
+
+# Emmean for fig making
+pnue.pairwise.full <- data.frame(variable = "pnue",
+                                 treatment = "full",
+                                 cld(emmeans(pnue, ~n.trt*inoc,
+                                             type = "response"),
+                                     Letters = LETTERS))
+pnue.pairwise.soiln <- data.frame(variable = "pnue",
+                                  treatment = "n.trt",
+                                  cld(emmeans(pnue, ~n.trt, 
+                                              type = "response"),
+                                      Letters = LETTERS))
+pnue.pairwise.inoc <- data.frame(variable = "pnue",
+                                 treatment = "inoc",
+                                 cld(emmeans(pnue, ~inoc, 
+                                             type = "response"),
+                                     Letters = LETTERS))
+pnue.pairwise <- pnue.pairwise.full %>%
+  full_join(pnue.pairwise.soiln) %>%
+  full_join(pnue.pairwise.inoc) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
 ## iWUE
 ##########################################################################
 iwue <- lmer(log(iwue) ~ n.trt * inoc + (1 | block),
