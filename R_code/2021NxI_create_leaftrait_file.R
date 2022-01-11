@@ -158,7 +158,7 @@ a.gs <- aci.merged %>%
   filter(CO2_r > 350 & CO2_r < 425) %>%
   filter(row_number() == 1) %>%
   dplyr::select(id, rep, n.trt, inoc, machine, A, Ci, Ca, gsw) %>%
-  mutate(iwue = A/gsw,
+  mutate(iwue = A / gsw,
          ci.ca = Ci / Ca) %>%
   data.frame()
 a.gs
@@ -282,10 +282,13 @@ aci.coef <- aci.coef %>%
                                    tGrow = tGrow),
          Rd25.Vcmax25 = Rd25 / Vcmax25, # Rd is temp standardized, so using Vcmax25
          Jmax25.Vcmax25 = Jmax25 / Vcmax25,
-         Vcmax.gs = Vcmax / gsw) %>% # gs is not temp standardized, so using Vcmax
+         vcmax.gs = Vcmax / gsw,
+         narea.gs = narea / gsw,
+         pnue = A / narea) %>% # gs is not temp standardized, so using Vcmax
   dplyr::select(id, rep, n.trt, inoc, block, machine, A, Vcmax25, Jmax25, Rd25,
-                TPU, Rd25.Vcmax25, Jmax25.Vcmax25, gsw, ci.ca, iwue, Vcmax.gs,
-                sla, focal.area, dry.biomass, leaf.n, leaf.cn, narea, everything()) %>%
+                TPU, Rd25.Vcmax25, Jmax25.Vcmax25, gsw, ci.ca, pnue, iwue, vcmax.gs, 
+                narea.gs, sla, focal.area, dry.biomass, leaf.n, leaf.cn, narea,
+                everything()) %>%
   dplyr::rename_all(tolower) %>%
   data.frame()
 
@@ -358,5 +361,3 @@ head(aci.coef)
 
 ## Write .csv file for leaf trait data
 write.csv(aci.coef, "../data/2021NxI_trait_data.csv")
-
-
