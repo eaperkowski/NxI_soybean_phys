@@ -854,6 +854,7 @@ comp.letters <- nmass.pairwise %>%
   full_join(rd.vcmax.pairwise) %>%
   full_join(gs.pairwise) %>%
   full_join(cica.pairwise) %>%
+  full_join(pnue.pairwise) %>%
   full_join(iwue.pairwise) %>%
   full_join(vcmax.gs.pairwise) %>%
   full_join(narea.gs.pairwise) %>%
