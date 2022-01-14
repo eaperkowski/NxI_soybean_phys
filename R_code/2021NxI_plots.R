@@ -382,62 +382,40 @@ tla
 ##########################################################################
 ## Figure 1: Leaf nitrogen allocation
 ##########################################################################
-a <- ggarrange(nmass, sla, narea, ncol = 1, nrow = 3, common.legend = TRUE,
-               align = "hv", legend = "right", labels = "AUTO",
-               font.label = list(size = 18, face = "bold"))
-ggsave(filename = "../docs/figs/2021NxI_soy_fig1_leafN.png",
-       a,
-       width = 5,
-       height = 9,
-       units = "in",
-       dpi = "retina")
+
+ggarrange(nmass, sla, narea, ncol = 1, nrow = 3, common.legend = TRUE,
+          align = "hv", legend = "right", labels = "AUTO",
+          font.label = list(size = 18, face = "bold")) %>%
+  ggexport(filename = "../docs/figs/2021NxI_soy_fig1_leafN.png", 
+           width = 3000, height = 5000, res = 600)
 
 ##########################################################################
 ## Figure 2: Leaf photosynthesis, respiration, Vcmax, Jmax
 ##########################################################################
-b <- ggarrange(a400, rd, vcmax, jmax,
-               nrow = 2, ncol = 2, common.legend = TRUE, 
-               align = "hv", labels = "AUTO", 
-               font.label = list(size = 18, face = "bold"))
-
-b <- annotate_figure(b, 
-                     bottom = text_grob(expression(
-                       bold("Soil nitrogen fertilization")), size = 15))
-
-ggsave(filename = "../docs/figs/2021NxI_soy_fig2_leafPhoto.png",
-       b,
-       width = 10,
-       height = 9,
-       units = "in",
-       dpi = "retina")
+ggarrange(a400, rd, vcmax, jmax, nrow = 2, ncol = 2, common.legend = TRUE, 
+          align = "hv", labels = "AUTO", font.label = list(size = 18, 
+                                                           face = "bold")) %>%
+  annotate_figure(bottom = text_grob(expression(
+    bold("Soil nitrogen fertilization")), size = 15)) %>%
+  ggexport(filename = "../docs/figs/2021NxI_soy_fig2_leafPhoto.png", 
+           width = 5500, height = 5000, res = 600)
 
 ##########################################################################
 ## Figure 3: PNUE, iWUE (to be replaced with chi), Narea:gs, Vcmax:gs
 ##########################################################################
-c <- ggarrange(pnue, iwue, narea.gs, vcmax.gs, nrow = 2, ncol = 2, 
-               common.legend = TRUE, align = "hv", legend = "right", 
-               labels = "AUTO", font.label = list(size = 18, face = "bold"))
-c <- annotate_figure(c, 
-                     bottom = text_grob(expression(
-                       bold("Soil nitrogen fertilization")), size = 15))
-ggsave(filename = "../docs/figs/2021NxI_soy_fig3_pnueiwue.png",
-       c,
-       width = 10,
-       height = 9,
-       units = "in",
-       dpi = "retina")
+ggarrange(pnue, iwue, narea.gs, vcmax.gs, nrow = 2, ncol = 2, 
+          common.legend = TRUE, align = "hv", legend = "right", 
+          labels = "AUTO", font.label = list(size = 18, face = "bold")) %>%
+  annotate_figure(bottom = text_grob(expression(
+                    bold("Soil nitrogen fertilization")), size = 15)) %>%
+  ggexport(filename = "../docs/figs/2021NxI_soy_fig3_pnueiwue.png", 
+           width = 5500, height = 5000, res = 600)
 
 ##########################################################################
 ## Figure 4: Whole plant measures
 ##########################################################################
-f <- ggarrange(tla, nrow = 1, ncol = 1, common.legend = TRUE, align = "hv", 
-               legend = "right", labels = "AUTO", 
-               font.label = list(size = 18, face = "bold"))
-f
-
-ggsave(filename = "../docs/figs/2021NxI_soy_fig5_totalLeafArea.png",
-       f,
-       width = 9,
-       height = 3.5,
-       units = "in",
-       dpi = "retina")
+ggarrange(tla, nrow = 1, ncol = 1, common.legend = TRUE, align = "hv", 
+          legend = "right", labels = "AUTO", 
+          font.label = list(size = 18, face = "bold")) %>%
+  ggexport(filename = "../docs/figs/2021NxI_soy_fig4_tla.png", 
+           width = 3500, height = 3000, res = 600)
