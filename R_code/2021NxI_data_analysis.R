@@ -14,7 +14,6 @@ emm_options(opt.digits = FALSE)
 ## Load data
 data <- read.csv("../data/2021NxI_trait_data.csv",
                  na.strings = "NA")
-data$narea.gs <- data$narea / data$gsw
 
 ## Check data
 head(data)
@@ -162,7 +161,7 @@ fa.pairwise <- fa.pairwise.full %>%
 ##########################################################################
 ## Focal leaf biomass (dry)
 ##########################################################################
-focal.bio <- lmer(dry.biomass ~ n.trt * inoc + (1 | block), 
+focal.bio <- lmer(focal.biomass ~ n.trt * inoc + (1 | block), 
                   data = data)
 
 # Check model assumptions
@@ -254,7 +253,7 @@ narea.pairwise <- narea.pairwise.full %>%
 ##########################################################################
 ## A400
 ##########################################################################
-a400 <- lmer(a ~ n.trt * inoc + (1 | block),
+a400 <- lmer(anet ~ n.trt * inoc + (1 | block),
              data = data)
 
 # Check model assumptions
@@ -379,7 +378,7 @@ jmax.pairwise <- jmax.pairwise.full %>%
          compact = c("B", "AB", "AB", "A", "B", "A", "A", "A"))
 
 ##########################################################################
-## Jmax:Vcmax25
+## Jmax25:Vcmax25
 ##########################################################################
 data$jmax25.vcmax25[c(46, 49)] <- NA
 
@@ -433,8 +432,7 @@ jmax.vcmax.pairwise <- jmax.vcmax.pairwise.full %>%
 ##########################################################################
 data$rd25[c(35, 63)] <- NA
 
-rd <- lmer(log(rd25) ~ n.trt * inoc + (1 | block),
-           data = data)
+rd <- lmer(log(rd25) ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(rd)
@@ -569,7 +567,7 @@ gs.pairwise <- gs.pairwise.full %>%
 ##########################################################################
 ## Ci:Ca
 ##########################################################################
-data$ci.ca[c(23)] <- NA
+data$ci.ca[c(23, 59)] <- NA
 
 cica <- lmer(ci.ca ~ n.trt * inoc + (1 | block), data = data)
 
