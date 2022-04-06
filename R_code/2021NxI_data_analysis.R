@@ -835,6 +835,48 @@ tla.pairwise <- tla.pairwise.full %>%
          compact = .group)
 
 ##########################################################################
+## Total biomass
+##########################################################################
+totalbiomass <- lmer(log(total.biomass) ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(totalbiomass)
+qqnorm(residuals(totalbiomass))
+qqline(residuals(totalbiomass))
+hist(residuals(totalbiomass))
+shapiro.test(residuals(totalbiomass))
+outlierTest(totalbiomass)
+
+# Model output
+summary(totalbiomass)
+Anova(totalbiomass)
+r.squaredGLMM(totalbiomass)
+
+# Pairwise comparisons
+emmeans(totalbiomass, pairwise~n.trt*inoc)
+emmeans(totalbiomass, pairwise~n.trt)
+emmeans(totalbiomass, pairwise~inoc)
+
+
+tbio.pairwise.full <- data.frame(variable = "total.biomass",
+                                treatment = "full",
+                                cld(emmeans(totalbiomass, ~n.trt*inoc),
+                                    Letters = LETTERS))
+tbio.pairwise.soiln <- data.frame(variable = "total.biomass",
+                                 treatment = "n.trt",
+                                 cld(emmeans(totalbiomass, ~n.trt),
+                                     Letters = LETTERS))
+tbio.pairwise.inoc <- data.frame(variable = "total.biomass",
+                                treatment = "inoc",
+                                cld(emmeans(totalbiomass, ~inoc),
+                                    Letters = LETTERS))
+tbio.pairwise <- tbio.pairwise.full %>%
+  full_join(tbio.pairwise.soiln) %>%
+  full_join(tbio.pairwise.inoc) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
 ## Make merged emmeans file
 ##########################################################################
 comp.letters <- nmass.pairwise %>%
@@ -855,6 +897,7 @@ comp.letters <- nmass.pairwise %>%
   full_join(iwue.pairwise) %>%
   full_join(vcmax.gs.pairwise) %>%
   full_join(narea.gs.pairwise) %>%
+  full_join(tbio.pairwise) %>%
   dplyr::rename(comparison = treatment) %>%
   unite("treatment", n.trt:inoc, remove = "FALSE") %>%
   mutate(treatment = factor(treatment, levels = c("LN_NI", "HN_NI",
