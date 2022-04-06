@@ -49,6 +49,11 @@ leaf.traits <- leaf.area %>%
   dplyr::rename(id = sample,
                 focal.area = total.leaf.area) %>%
   full_join(dry.wgt) %>%
+  group_by(id) %>%
+  mutate(total.biomass = ifelse(is.na(root.biomass), 
+                                NA, sum(focal.biomass, leaf.biomass, 
+                                        stem.biomass, root.biomass, 
+                                        nodule.biomass, na.rm = TRUE))) %>%
   full_join(leaf.cn) %>%
   full_join(fluorescence) %>%
   group_by(id) %>%
