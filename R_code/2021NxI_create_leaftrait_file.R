@@ -63,8 +63,8 @@ leaf.traits <- leaf.area %>%
          total.leaf.area = focal.area + total.leaf.area) %>%
   arrange(rep) %>%
   mutate(block = rep(1:4, each = 16),
-         sla = focal.area / dry.biomass * 0.01, # SLA is in m^2 g^-1
-         narea = leaf.n / sla,
+         sla = (focal.area / focal.biomass), # SLA is in cm^2 g^-1
+         narea = (leaf.n/100) / sla * 10000,
          leaf.cn = leaf.c / leaf.n)
 
 ## Check data frame
@@ -89,9 +89,9 @@ resp.merged <- df.resp %>%
   group_by(id) %>%
   dplyr::select(id, A, TleafEB) %>%
   mutate(resp = abs(A)) %>%
-  summarize(resp = mean(resp, na.rm = TRUE),
+  summarize(rd = mean(resp, na.rm = TRUE),
             tleaf = mean(TleafEB, na.rm = TRUE),
-            resp25 = temp_standardize(resp,
+            rd25 = temp_standardize(rd,
                                       estimate.type = "Rd",
                                       pft = "C3H",
                                       standard.to = 25,
@@ -173,7 +173,7 @@ aci.tpu <- aci.merged %>%
                           Tleaf = "TleafEB",
                           Ci = "Ci",
                           PPFD = "Qin",
-                          Rd = "resp25"),
+                          Rd = "rd"),
           fitTPU = TRUE,
           useRd = TRUE,
           Tcorrect = FALSE)
@@ -214,9 +214,8 @@ aci.coef <- aci.tpu %>%
   coef() %>%
   full_join(aci.r4_hn_ni) %>%
   dplyr::select(id,
-                Vcmax,
-                Jmax,
-                Rd25 = Rd,
+                vcmax = Vcmax,
+                jmax = Jmax,
                 TPU) %>%
   separate(col = "id",
          sep = "(_*)[_]_*",
@@ -229,6 +228,7 @@ aci.coef <- aci.tpu %>%
   arrange(rep) %>%
   mutate(block = rep(1:4, each = 16)) %>%
   full_join(aci.temp) %>%
+  full_join(resp.merged) %>%
   full_join(a.gs) %>%
   full_join(leaf.traits) %>%
   data.frame()
@@ -270,25 +270,26 @@ aci.coef <- df.tgrow %>%
 ## with HOBO data once experiment is taken down
 aci.coef <- aci.coef %>%
   group_by(id) %>%
-  mutate(Vcmax25 = temp_standardize(estimate = Vcmax,
+  mutate(vcmax25 = temp_standardize(estimate = vcmax,
                                     estimate.type = "Vcmax",
                                     standard.to = 25,
                                     tLeaf = leaf.temp,
                                     tGrow = tGrow),
-         Jmax25 = temp_standardize(estimate = Jmax,
+         jmax25 = temp_standardize(estimate = jmax,
                                    estimate.type = "Jmax",
                                    standard.to = 25,
                                    tLeaf = leaf.temp,
                                    tGrow = tGrow),
-         Rd25.Vcmax25 = Rd25 / Vcmax25, # Rd is temp standardized, so using Vcmax25
-         Jmax25.Vcmax25 = Jmax25 / Vcmax25,
-         vcmax.gs = Vcmax / gsw,
+         rd25.vcmax25 = rd25 / vcmax25, # Rd is temp standardized, so using Vcmax25
+         jmax25.vcmax25 = jmax25 / vcmax25,
+         vcmax.gs = vcmax / gsw,
          narea.gs = narea / gsw,
          pnue = A / narea) %>% # gs is not temp standardized, so using Vcmax
-  dplyr::select(id, rep, n.trt, inoc, block, machine, A, Vcmax25, Jmax25, Rd25,
-                TPU, Rd25.Vcmax25, Jmax25.Vcmax25, gsw, ci.ca, pnue, iwue, vcmax.gs, 
-                narea.gs, sla, focal.area, dry.biomass, leaf.n, leaf.cn, narea,
-                everything()) %>%
+  dplyr::select(id, rep, n.trt, inoc, block, machine, anet = A, vcmax, vcmax25, 
+                jmax, jmax25, rd, rd25, TPU, rd25.vcmax25, jmax25.vcmax25, gsw, 
+                ci.ca, pnue, iwue, vcmax.gs, narea.gs, sla, focal.area, 
+                focal.biomass, leaf.n, leaf.cn, narea, everything(), 
+                -leaf.temp, -tleaf, -(ambient.humidity:ambient.temp)) %>%
   dplyr::rename_all(tolower) %>%
   data.frame()
 
@@ -360,4 +361,5 @@ head(aci.coef)
 #head(aci.coef)
 
 ## Write .csv file for leaf trait data
-write.csv(aci.coef, "../data/2021NxI_trait_data.csv")
+write.csv(aci.coef, "../data/2021NxI_trait_data.csv", row.names = FALSE)
+
