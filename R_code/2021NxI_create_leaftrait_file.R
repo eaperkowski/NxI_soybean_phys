@@ -4,10 +4,10 @@
 library(LeafArea)
 library(dplyr)
 library(stringr)
-library(tidyr)
 library(readr)
 library(reshape)
 library(plantecophys)
+library(tidyverse)
 
 #####################################################################
 # Load temp standardization function for Vcmax/Jmax
@@ -15,17 +15,96 @@ library(plantecophys)
 source("/Users/eaperkowski/git/r_functions/temp_standardize.R")
 
 #####################################################################
-# Load .csv file with dry weight data, leaf CN data, and
-# fluorescence data
+# Load and clean biomass, CN, fluorescence data
 #####################################################################
-dry.wgt <- read.csv("../data/2021NxI_biomass_TLA.csv")
-dry.wgt$id <- toupper(dry.wgt$id)
+## Read in biomass file
+biomass <- read.csv("../data/2021NxI_biomass_TLA.csv")
 
-leaf.cn <- read.csv("../data/2021NxI_leafcn.csv")
-leaf.cn$id <- toupper(leaf.cn$id)
+## List files
+file.list <- list.files("../costech_results",
+                        recursive = TRUE,
+                        pattern = "\\.csv$",
+                        full.names = TRUE)
+
+file.list <- setNames(file.list, stringr::str_extract(basename(file.list), 
+                                                      '.*(?=\\.csv)'))
+
+## Read files, merge to data frame, separate by organ type
+concat.plates <- lapply(file.list, read.csv) %>%
+  reshape::merge_all() %>%
+  filter(sample.type == "unknown" & id != "QC") %>%
+  separate(id, into = c("rep", "n.trt", "inoc", "organ")) %>%
+  unite(col = "id", rep:inoc) %>%
+  dplyr::select(id, organ, n.weight.percent, c.weight.percent)
+
+
+## Create different objects for each organ, rename cols
+focal <- concat.plates %>%
+  filter(organ == "focal") %>%
+  dplyr::select(id, focal.n = n.weight.percent, focal.c = c.weight.percent)
+
+leaves <- concat.plates %>%
+  filter(organ == "tl") %>%
+  dplyr::select(id, leaf.n = n.weight.percent, leaf.c = c.weight.percent)
+
+stems <- concat.plates %>%
+  filter(organ == "ts") %>%
+  dplyr::select(id, stem.n = n.weight.percent, stem.c = c.weight.percent)
+
+roots <- concat.plates %>%
+  filter(organ == "tr") %>%
+  dplyr::select(id, root.n = n.weight.percent, root.c = c.weight.percent)
+
+nods <- concat.plates %>%
+  filter(organ == "nod") %>%
+  dplyr::select(id, nodule.n = n.weight.percent, nodule.c = c.weight.percent)
+
+## Merge organs back into data frame
+leaf.cn <- biomass %>%
+  full_join(focal) %>%
+  full_join(leaves) %>%
+  full_join(stems) %>%
+  full_join(roots) %>%
+  full_join(nods) %>%
+  filter(!row_number() %in% 18) %>%
+  group_by(id) %>%
+  mutate(total.leaf.n = (focal.biomass + leaf.biomass) * (leaf.n/100),
+         total.stem.n = stem.biomass * (stem.n/100),
+         total.root.n = ifelse(is.na(root.biomass), NA,
+                               root.biomass * (root.n/100)),
+         total.root.c = ifelse(is.na(root.biomass), NA,
+                               root.biomass * (root.c/100)),
+         total.nod.n = ifelse(nodule.biomass == 0, 0,
+                              ifelse(is.na(root.biomass), NA,
+                                     nodule.biomass * (nodule.n/100))),
+         total.nod.c = ifelse(nodule.biomass == 0, 0,
+                              ifelse(is.na(root.biomass), NA,
+                                     nodule.biomass * (nodule.c/100)))) %>%
+  mutate(wp.total.n = ifelse(is.na(root.biomass) | is.na(stem.biomass) | 
+                               is.na(leaf.biomass) | is.na(leaf.n) | is.na(stem.n) | 
+                               is.na(root.n), NA,
+                             sum(total.leaf.n, total.root.n, total.stem.n, 
+                                 total.nod.n, na.rm = TRUE)),
+         bg.total.c = ifelse(is.na(root.biomass) | is.na(root.c), NA, 
+                             sum(total.root.c, total.nod.c, na.rm = TRUE)),
+         n.cost = bg.total.c / wp.total.n,
+         total.biomass = ifelse(is.na(root.biomass), 
+                                NA, sum(focal.biomass, leaf.biomass, 
+                                        stem.biomass, root.biomass, 
+                                        nodule.biomass, na.rm = TRUE)),
+         bvr = total.biomass / 6) %>%
+  separate(col = "id", 
+           sep = "(_*)[_]_*",
+           into = c("rep", "n.trt", "inoc"),
+           remove = FALSE) %>%
+  mutate(rep = gsub("r", "", rep),
+         rep = str_pad(rep, width = 2, side = "left", pad = "0"),
+         id = tolower(id)) %>%
+  arrange(rep)
 
 fluorescence <- read.csv("../data/2021NxI_fluorescence.csv")
-fluorescence$id <- toupper(fluorescence$id)
+
+length(which(!is.na(leaf.cn$n.cost)))
 
 #####################################################################
 # Determine leaf areas
@@ -48,16 +127,9 @@ head(leaf.area)
 leaf.traits <- leaf.area %>%
   dplyr::rename(id = sample,
                 focal.area = total.leaf.area) %>%
-  full_join(dry.wgt) %>%
-  group_by(id) %>%
-  mutate(total.biomass = ifelse(is.na(root.biomass), 
-                                NA, sum(focal.biomass, leaf.biomass, 
-                                        stem.biomass, root.biomass, 
-                                        nodule.biomass, na.rm = TRUE))) %>%
+  mutate(id = tolower(id)) %>%
   full_join(leaf.cn) %>%
-  full_join(fluorescence) %>%
   group_by(id) %>%
-  summarize_all(mean) %>%
   separate(col = "id", 
            sep = "(_*)[_]_*",
            into = c("rep", "n.trt", "inoc"),
@@ -67,10 +139,9 @@ leaf.traits <- leaf.area %>%
          id = tolower(id),
          total.leaf.area = focal.area + total.leaf.area) %>%
   arrange(rep) %>%
-  mutate(block = rep(1:4, each = 16),
-         sla = (focal.area / focal.biomass), # SLA is in cm^2 g^-1
-         narea = (leaf.n/100) / sla * 10000,
-         leaf.cn = leaf.c / leaf.n)
+  dplyr::mutate(sla = (focal.area / focal.biomass), # SLA is in cm^2 g^-1
+                narea = (focal.n/100) / sla * 10000,
+                leaf.cn = focal.c / focal.n)
 
 ## Check data frame
 head(leaf.traits)
