@@ -400,7 +400,7 @@ Anova(jmax25.vcmax25)
 r.squaredGLMM(jmax25.vcmax25)
 
 # Pairwise comparisons
-cld(emmeans(jmax25.vcmax25, pairwise~n.trt*inoc)) 
+cld(emmeans(jmax25.vcmax25, pairwise~n.trt*inoc, type = "response")) 
 # High nitrogen decreases Jmax25:Vcmax25 when plants are not inoculated
 # Nitrogen status has no impact on Jmax25:Vcmax25 when plants are inoculated
 
@@ -450,7 +450,7 @@ r.squaredGLMM(rd)
 # Pairwise comparisons
 emmeans(rd, pairwise~n.trt) 
 # Nitrogen addition increases dark respiration
-emmeans(rd, pairwise~n.trt*inoc) 
+cld(emmeans(rd, pairwise~n.trt*inoc, type = "response"))
 # Low nitrogen, no inoculation has marginally lower Rd than high nitrogen,
 # yes inoculation
 
@@ -673,7 +673,7 @@ Anova(iwue)
 r.squaredGLMM(iwue)
 
 # Pairwise comparisons
-emmeans(iwue, pairwise~n.trt)
+emmeans(iwue, pairwise~n.trt, type = "response")
 # Increasing nitrogen increases iWUE
 
 # Emmean for fig making

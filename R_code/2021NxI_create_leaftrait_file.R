@@ -134,8 +134,8 @@ leaf.traits <- leaf.area %>%
            sep = "(_*)[_]_*",
            into = c("rep", "n.trt", "inoc"),
            remove = FALSE) %>%
-  mutate(rep = gsub("R", "", rep),
-                rep = str_pad(rep, width = 2, side = "left", pad = "0"),
+  mutate(rep = gsub("r", "", rep),
+         rep = str_pad(rep, width = 2, side = "left", pad = "0"),
          id = tolower(id),
          total.leaf.area = focal.area + total.leaf.area) %>%
   arrange(rep) %>%
@@ -235,7 +235,9 @@ a.gs <- aci.merged %>%
   filter(row_number() == 1) %>%
   dplyr::select(id, rep, n.trt, inoc, machine, A, Ci, Ca, gsw) %>%
   mutate(iwue = A / gsw,
-         ci.ca = Ci / Ca) %>%
+         ci.ca = Ci / Ca,
+         n.trt = tolower(n.trt),
+         inoc = tolower(inoc)) %>%
   data.frame()
 a.gs
 
@@ -298,9 +300,7 @@ aci.coef <- aci.tpu %>%
          into = c("rep", "n.trt", "inoc"),
          remove = FALSE) %>%
   mutate(rep = gsub("r", "", rep),
-         rep = str_pad(rep, width = 2, side = "left", pad = "0"),
-         n.trt = toupper(n.trt),
-         inoc = toupper(inoc)) %>%
+         rep = str_pad(rep, width = 2, side = "left", pad = "0")) %>%
   arrange(rep) %>%
   mutate(block = rep(1:4, each = 16)) %>%
   full_join(aci.temp) %>%
@@ -365,7 +365,7 @@ aci.coef <- aci.coef %>%
                 jmax, jmax25, rd, rd25, TPU, rd25.vcmax25, jmax25.vcmax25, gsw, 
                 ci.ca, pnue, iwue, vcmax.gs, narea.gs, sla, focal.area, 
                 focal.biomass, leaf.n, leaf.cn, narea, everything(), 
-                -leaf.temp, -tleaf, -(ambient.humidity:ambient.temp)) %>%
+                -leaf.temp, -tleaf) %>%
   dplyr::rename_all(tolower) %>%
   data.frame()
 
