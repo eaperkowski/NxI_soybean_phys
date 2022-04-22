@@ -15,6 +15,13 @@ emm_options(opt.digits = FALSE)
 data <- read.csv("../data/2021NxI_trait_data.csv",
                  na.strings = "NA")
 
+## Add  nodule biomass and nod.root.biomass
+data$nodule.biomass <- ifelse(is.numeric(data$root.biomass) & 
+                                is.na(data$nodule.biomass),
+                              0, data$nodule.biomass)
+
+data$nod.root.biomass <- data$nodule.biomass / data$root.biomass
+
 ## Check data
 head(data)
 
@@ -48,17 +55,17 @@ cld(emmeans(nmass, pairwise ~ n.trt * inoc))
 nmass.pairwise.full <- data.frame(variable = "nmass",
                                 treatment = "full",
                                 cld(emmeans(nmass, ~n.trt*inoc),
-                                    Letters = LETTERS))
+                                    Letters = letters))
 nmass.pairwise.soiln <- data.frame(variable = "nmass",
                                  treatment = "n.trt",
                                  cld(emmeans(nmass,
                                              ~n.trt),
-                                     Letters = LETTERS))
+                                     Letters = letters))
 nmass.pairwise.inoc <- data.frame(variable = "nmass",
                                 treatment = "inoc",
                                 cld(emmeans(nmass,
                                             ~inoc),
-                                    Letters = LETTERS))
+                                    Letters = letters))
 nmass.pairwise <- nmass.pairwise.full %>%
   full_join(nmass.pairwise.soiln) %>%
   full_join(nmass.pairwise.inoc) %>%
@@ -95,17 +102,17 @@ emmeans(sla, pairwise~n.trt)
 sla.pairwise.full <- data.frame(variable = "sla",
                                 treatment = "full",
                                 cld(emmeans(sla, ~n.trt*inoc),
-                                    Letters = LETTERS))
+                                    Letters = letters))
 sla.pairwise.soiln <- data.frame(variable = "sla",
                                  treatment = "n.trt",
                                  cld(emmeans(sla,
                                              ~n.trt),
-                                     Letters = LETTERS))
+                                     Letters = letters))
 sla.pairwise.inoc <- data.frame(variable = "sla",
                                 treatment = "inoc",
                                 cld(emmeans(sla,
                                             ~inoc),
-                                    Letters = LETTERS))
+                                    Letters = letters))
 sla.pairwise <- sla.pairwise.full %>%
   full_join(sla.pairwise.soiln) %>%
   full_join(sla.pairwise.inoc) %>%
@@ -113,99 +120,10 @@ sla.pairwise <- sla.pairwise.full %>%
          compact = .group)
 
 ##########################################################################
-## Focal leaf area
-##########################################################################
-fa <- lmer(focal.area ~ n.trt * inoc + (1 | block), 
-           data = data)
-
-# Check model assumptions
-plot(fa)
-qqnorm(residuals(fa))
-qqline(residuals(fa))
-hist(residuals(fa))
-shapiro.test(residuals(fa))
-outlierTest(fa)
-
-# Model output
-summary(fa)
-Anova(fa)
-r.squaredGLMM(fa)
-
-# Pairwise comparisons
-emmeans(fa, pairwise~inoc)
-## Inoculated individuals generally have larger leaves than non-inoculated
-## individuals
-
-emmeans(fa, pairwise~n.trt)
-## Increasing soil nitrogen generally increases leaf area
-
-## Emmeans for fig making
-fa.pairwise.full <- data.frame(variable = "focal.area",
-                               treatment = "full",
-                               cld(emmeans(fa, ~n.trt*inoc),
-                                   Letters = LETTERS))
-fa.pairwise.soiln <- data.frame(variable = "focal.area",
-                                treatment = "n.trt",
-                                cld(emmeans(fa,  ~n.trt),
-                                    Letters = LETTERS))
-fa.pairwise.inoc <- data.frame(variable = "focal.area",
-                               treatment = "inoc",
-                               cld(emmeans(fa, ~inoc),
-                                   Letters = LETTERS))
-fa.pairwise <- fa.pairwise.full %>%
-  full_join(fa.pairwise.soiln) %>%
-  full_join(fa.pairwise.inoc) %>%
-  mutate(.group = trimws(.group, "both"),
-         compact = .group)
-
-##########################################################################
-## Focal leaf biomass (dry)
-##########################################################################
-focal.bio <- lmer(focal.biomass ~ n.trt * inoc + (1 | block), 
-                  data = data)
-
-# Check model assumptions
-plot(focal.bio)
-qqnorm(residuals(focal.bio))
-qqline(residuals(focal.bio))
-hist(residuals(focal.bio))
-shapiro.test(residuals(focal.bio))
-outlierTest(focal.bio)
-
-# Model output
-summary(focal.bio)
-Anova(focal.bio)
-r.squaredGLMM(focal.bio)
-
-# Pairwise comparisons
-emmeans(focal.bio, pairwise~n.trt)
-## Increasing soil nitrogen generally increases dry biomass
-
-## NOTE: the marginal impact of n.trt on SLA was driven by a marginally
-## larger increase in leaf area than dry biomass (but both leaf area and
-## dry biomass increased)
-
-fb.pairwise.full <- data.frame(variable = "focal.biomass",
-                               treatment = "full",
-                               cld(emmeans(focal.bio, ~n.trt*inoc),
-                                   Letters = LETTERS))
-fb.pairwise.soiln <- data.frame(variable = "focal.biomass",
-                                treatment = "n.trt",
-                                cld(emmeans(focal.bio, ~n.trt),
-                                    Letters = LETTERS))
-fb.pairwise.inoc <- data.frame(variable = "focal.biomass",
-                               treatment = "inoc",
-                               cld(emmeans(focal.bio, ~inoc),
-                                   Letters = LETTERS))
-fb.pairwise <- fb.pairwise.full %>%
-  full_join(fb.pairwise.soiln) %>%
-  full_join(fb.pairwise.inoc) %>%
-  mutate(.group = trimws(.group, "both"),
-         compact = .group)
-
-##########################################################################
 ## Narea
 ##########################################################################
+data$narea[39] <- NA
+
 narea <- lmer(narea ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
@@ -222,7 +140,7 @@ Anova(narea)
 r.squaredGLMM(narea)
 
 # Pairwise comparisons
-cld(emmeans(narea, pairwise ~ n.trt * inoc))
+emmeans(narea, pairwise ~ n.trt * inoc)
 ## Increasing soil nitrogen availability generally increases Narea. The 
 ## positive effect of inoculation status on Narea was only observed at 
 ## low nitrogen. There was no effect of inoculation status under high nitrogen
@@ -233,17 +151,17 @@ cld(emmeans(narea, pairwise ~ n.trt * inoc))
 narea.pairwise.full <- data.frame(variable = "narea",
                                   treatment = "full",
                                   cld(emmeans(narea, ~n.trt*inoc),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 narea.pairwise.soiln <- data.frame(variable = "narea",
                                    treatment = "n.trt",
                                    cld(emmeans(narea,
                                                ~n.trt),
-                                       Letters = LETTERS))
+                                       Letters = letters))
 narea.pairwise.inoc <- data.frame(variable = "narea",
                                   treatment = "inoc",
                                   cld(emmeans(narea,
                                               ~inoc),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 narea.pairwise <- narea.pairwise.full %>%
   full_join(narea.pairwise.soiln) %>%
   full_join(narea.pairwise.inoc) %>%
@@ -253,8 +171,7 @@ narea.pairwise <- narea.pairwise.full %>%
 ##########################################################################
 ## A400
 ##########################################################################
-a400 <- lmer(anet ~ n.trt * inoc + (1 | block),
-             data = data)
+a400 <- lmer(anet ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(a400)
@@ -276,30 +193,29 @@ emmeans(a400, pairwise~n.trt)
 a400.pairwise.full <- data.frame(variable = "a400",
                                  treatment = "full",
                                  cld(emmeans(a400, ~n.trt*inoc),
-                                Letters = LETTERS))
+                                Letters = letters))
 a400.pairwise.soiln <- data.frame(variable = "a400",
                                   treatment = "n.trt",
                                   cld(emmeans(a400,
                                               ~n.trt),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 a400.pairwise.inoc <- data.frame(variable = "a400",
                                   treatment = "inoc",
                                   cld(emmeans(a400,
                                               ~inoc),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 
 a400.pairwise <- a400.pairwise.full %>%
   full_join(a400.pairwise.soiln) %>%
   full_join(a400.pairwise.inoc) %>%
   mutate(.group = trimws(.group, which = "both"),
-         compact = c("B", "AB", "A", "A", "B", "A", "A", "A")) %>%
+         compact = c("b", "ab", "a", "a", "b", "a", "a", "a")) %>%
   data.frame()
 
 ##########################################################################
 ## Vcmax25 with TPU
 ##########################################################################
-vcmax25 <- lmer(vcmax25 ~ n.trt * inoc + (1 | block),
-                data = data)
+vcmax25 <- lmer(vcmax25 ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(vcmax25)
@@ -321,26 +237,25 @@ emmeans(vcmax25, pairwise~n.trt) # Nitrogen addition decreases Vcmax25??
 vcmax.pairwise.full <- data.frame(variable = "vcmax25",
                                   treatment = "full",
                                   cld(emmeans(vcmax25, ~n.trt*inoc),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 vcmax.pairwise.soiln <- data.frame(variable = "vcmax25",
                                    treatment = "n.trt",
                                    cld(emmeans(vcmax25, ~n.trt),
-                                       Letters = LETTERS))
+                                       Letters = letters))
 vcmax.pairwise.inoc <- data.frame(variable = "vcmax25",
                                   treatment = "inoc",
                                   cld(emmeans(vcmax25, ~inoc),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 vcmax.pairwise <- vcmax.pairwise.full %>%
   full_join(vcmax.pairwise.soiln) %>%
   full_join(vcmax.pairwise.inoc) %>%
   mutate(.group = trimws(.group, "both"),
-         compact = c("A", "A", "A", "A", "B", "A", "A", "A"))
+         compact = c("a", "a", "a", "a", "b", "a", "a", "a"))
 
 ##########################################################################
 ## Jmax25 with TPU
 ##########################################################################
-jmax25 <- lmer(jmax25 ~ n.trt * inoc + (1 | block),
-               data = data)
+jmax25 <- lmer(jmax25 ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(jmax25)
@@ -362,20 +277,20 @@ emmeans(jmax25, pairwise~n.trt) # Nitrogen addition decreases Jmax25?
 jmax.pairwise.full <- data.frame(variable = "jmax25",
                                  treatment = "full",
                                  cld(emmeans(jmax25, ~n.trt*inoc),
-                                 Letters = LETTERS))
+                                 Letters = letters))
 jmax.pairwise.soiln <- data.frame(variable = "jmax25",
                                   treatment = "n.trt",
                                   cld(emmeans(jmax25, ~n.trt),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 jmax.pairwise.inoc <- data.frame(variable = "jmax25",
                                  treatment = "inoc",
                                  cld(emmeans(jmax25, ~inoc),
-                                     Letters = LETTERS))
+                                     Letters = letters))
 jmax.pairwise <- jmax.pairwise.full %>%
   full_join(jmax.pairwise.soiln) %>%
   full_join(jmax.pairwise.inoc) %>%
   mutate(.group = trimws(.group, "both"),
-         compact = c("B", "AB", "AB", "A", "B", "A", "A", "A"))
+         compact = c("b", "ab", "ab", "a", "b", "a", "a", "a"))
 
 ##########################################################################
 ## Jmax25:Vcmax25
@@ -400,6 +315,8 @@ Anova(jmax25.vcmax25)
 r.squaredGLMM(jmax25.vcmax25)
 
 # Pairwise comparisons
+emmeans(jmax25.vcmax25, pairwise~n.trt, type = "response")
+
 cld(emmeans(jmax25.vcmax25, pairwise~n.trt*inoc, type = "response")) 
 # High nitrogen decreases Jmax25:Vcmax25 when plants are not inoculated
 # Nitrogen status has no impact on Jmax25:Vcmax25 when plants are inoculated
@@ -409,23 +326,23 @@ jmax.vcmax.pairwise.full <- data.frame(variable = "jmax25.vcmax25",
                                        treatment = "full",
                                        cld(emmeans(jmax25.vcmax25, ~n.trt*inoc,
                                                    type = "response"),
-                                           Letters = LETTERS))
+                                           Letters = letters))
 jmax.vcmax.pairwise.soiln <- data.frame(variable = "jmax25.vcmax25",
                                         treatment = "n.trt",
                                         cld(emmeans(jmax25.vcmax25, ~n.trt,
                                                     type = "response"),
-                                            Letters = LETTERS))
+                                            Letters = letters))
 jmax.vcmax.pairwise.inoc <- data.frame(variable = "jmax25.vcmax25",
                                         treatment = "inoc",
                                         cld(emmeans(jmax25.vcmax25, ~inoc,
                                                     type = "response"),
-                                            Letters = LETTERS))
+                                            Letters = letters))
 jmax.vcmax.pairwise <- jmax.vcmax.pairwise.full %>%
   full_join(jmax.vcmax.pairwise.soiln) %>%
   full_join(jmax.vcmax.pairwise.inoc) %>%
   dplyr::rename(emmean = response) %>%
   mutate(.group = trimws(.group, "both"),
-         compact = c("B", "AB", "A", "A", "B", "A", "A", "A"))
+         compact = c("b", "ab", "a", "a", "b", "a", "a", "a"))
 
 ##########################################################################
 ## Rd (standardized to 25 deg C)
@@ -459,17 +376,17 @@ rd.pairwise.full <- data.frame(variable = "rd25",
                                treatment = "full",
                                cld(emmeans(rd, ~n.trt*inoc, 
                                            type = "response"),
-                                   Letters = LETTERS))
+                                   Letters = letters))
 rd.pairwise.soiln <- data.frame(variable = "rd25",
                                 treatment = "n.trt",
                                 cld(emmeans(rd, ~n.trt, 
                                             type = "response"),
-                                    Letters = LETTERS))
+                                    Letters = letters))
 rd.pairwise.inoc <- data.frame(variable = "rd25",
                                treatment = "inoc",
                                cld(emmeans(rd, ~inoc, 
                                            type = "response"),
-                                    Letters = LETTERS))
+                                    Letters = letters))
 rd.pairwise <- rd.pairwise.full %>%
   full_join(rd.pairwise.soiln) %>%
   full_join(rd.pairwise.inoc) %>%
@@ -482,8 +399,7 @@ rd.pairwise <- rd.pairwise.full %>%
 ##########################################################################
 data$rd25.vcmax25[c(35)] <- NA
 
-rd.vcmax <- lmer(rd25.vcmax25 ~ n.trt * inoc + (1 | block),
-                 data = data)
+rd.vcmax <- lmer(rd25.vcmax25 ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(rd.vcmax)
@@ -503,20 +419,21 @@ emmeans(rd.vcmax, pairwise~n.trt)
 # High nitrogen increases Rd:Vcmax regardless of inoculation status
 # Driven by both an increase in Rd and reduction in Vcmax with increasing soil N
 emmeans(rd.vcmax, pairwise~n.trt*inoc)
+cld(emmeans(rd.vcmax, pairwise~n.trt*inoc))
 
 # Emmean for fig making
 rd.vcmax.pairwise.full <- data.frame(variable = "rd.vcmax",
                                      treatment = "full",
                                      cld(emmeans(rd.vcmax, ~n.trt*inoc),
-                                         Letters = LETTERS))
+                                         Letters = letters))
 rd.vcmax.pairwise.soiln <- data.frame(variable = "rd25.vcmax25",
                                       treatment = "n.trt",
                                       cld(emmeans(rd.vcmax, ~n.trt),
-                                          Letters = LETTERS))
+                                          Letters = letters))
 rd.vcmax.pairwise.inoc <- data.frame(variable = "rd25.vcmax25",
                                      treatment = "inoc",
                                      cld(emmeans(rd.vcmax, ~inoc),
-                                         Letters = LETTERS))
+                                         Letters = letters))
 rd.vcmax.pairwise <- rd.vcmax.pairwise.full %>%
   full_join(rd.vcmax.pairwise.soiln) %>%
   full_join(rd.vcmax.pairwise.inoc) %>%
@@ -549,20 +466,20 @@ emmeans(gs, pairwise~n.trt)
 gs.pairwise.full <- data.frame(variable = "gs",
                                treatment = "full",
                                cld(emmeans(gs, ~n.trt*inoc),
-                                   Letters = LETTERS))
+                                   Letters = letters))
 gs.pairwise.soiln <- data.frame(variable = "gs",
                                 treatment = "n.trt",
                                 cld(emmeans(gs, ~n.trt),
-                                    Letters = LETTERS))
+                                    Letters = letters))
 gs.pairwise.inoc <- data.frame(variable = "gs",
                                treatment = "inoc",
                                cld(emmeans(gs, ~inoc),
-                                   Letters = LETTERS))
+                                   Letters = letters))
 gs.pairwise <- gs.pairwise.full %>%
   full_join(gs.pairwise.soiln) %>%
   full_join(gs.pairwise.inoc) %>%
   mutate(.group = trimws(.group, "both"),
-         compact = c("B", "B", "A", "A", "B", "A", "A", "A"))
+         compact = c("b", "b", "a", "a", "b", "a", "a", "a"))
 
 ##########################################################################
 ## Ci:Ca
@@ -592,24 +509,26 @@ emmeans(cica, pairwise~n.trt)
 cica.pairwise.full <- data.frame(variable = "ci.ca",
                                  treatment = "full",
                             cld(emmeans(cica, ~n.trt*inoc),
-                                Letters = LETTERS))
+                                Letters = letters))
 cica.pairwise.soiln <- data.frame(variable = "ci.ca",
                                   treatment = "n.trt",
                                   cld(emmeans(cica, ~n.trt),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 cica.pairwise.inoc <- data.frame(variable = "ci.ca",
                                  treatment = "inoc",
                                  cld(emmeans(cica, ~inoc),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 cica.pairwise <- cica.pairwise.full %>%
   full_join(cica.pairwise.soiln) %>%
   full_join(cica.pairwise.inoc) %>%
   mutate(.group = trimws(.group, "both"),
-         compact = c("A", "A", "A", "A", "B", "A", "A", "A"))
+         compact = c("a", "a", "a", "a", "b", "a", "a", "a"))
 
 ##########################################################################
 ## PNUE
 ##########################################################################
+data$pnue[39] <- NA
+
 pnue <- lmer(pnue ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
@@ -636,28 +555,27 @@ pnue.pairwise.full <- data.frame(variable = "pnue",
                                  treatment = "full",
                                  cld(emmeans(pnue, ~n.trt*inoc,
                                              type = "response"),
-                                     Letters = LETTERS))
+                                     Letters = letters))
 pnue.pairwise.soiln <- data.frame(variable = "pnue",
                                   treatment = "n.trt",
                                   cld(emmeans(pnue, ~n.trt, 
                                               type = "response"),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 pnue.pairwise.inoc <- data.frame(variable = "pnue",
                                  treatment = "inoc",
                                  cld(emmeans(pnue, ~inoc, 
                                              type = "response"),
-                                     Letters = LETTERS))
+                                     Letters = letters))
 pnue.pairwise <- pnue.pairwise.full %>%
   full_join(pnue.pairwise.soiln) %>%
   full_join(pnue.pairwise.inoc) %>%
   mutate(.group = trimws(.group, "both"),
-         compact = c("B", "B", "A", "A", "B", "A", "A", "A"))
+         compact = c("b", "b", "a", "a", "b", "a", "a", "a"))
 
 ##########################################################################
 ## iWUE
 ##########################################################################
-iwue <- lmer(log(iwue) ~ n.trt * inoc + (1 | block),
-             data = data)
+iwue <- lmer(log(iwue) ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(iwue)
@@ -681,17 +599,17 @@ iwue.pairwise.full <- data.frame(variable = "iwue",
                                  treatment = "full",
                                  cld(emmeans(iwue, ~n.trt*inoc,
                                              type = "response"),
-                                     Letters = LETTERS))
+                                     Letters = letters))
 iwue.pairwise.soiln <- data.frame(variable = "iwue",
                                   treatment = "n.trt",
                                   cld(emmeans(iwue, ~n.trt, 
                                               type = "response"),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 iwue.pairwise.inoc <- data.frame(variable = "iwue",
                                  treatment = "inoc",
                                   cld(emmeans(iwue, ~inoc, 
                                               type = "response"),
-                                      Letters = LETTERS))
+                                      Letters = letters))
 iwue.pairwise <- iwue.pairwise.full %>%
   full_join(iwue.pairwise.soiln) %>%
   full_join(iwue.pairwise.inoc) %>%
@@ -702,8 +620,7 @@ iwue.pairwise <- iwue.pairwise.full %>%
 ##########################################################################
 ## Vcmax:gs
 ##########################################################################
-vcmax.gs <- lmer(log(vcmax.gs) ~ n.trt * inoc + (1 | block), 
-                 data = data)
+vcmax.gs <- lmer(log(vcmax.gs) ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(vcmax.gs)
@@ -728,17 +645,17 @@ vcmax.gs.pairwise.full <- data.frame(variable = "vcmax.gs",
                                      treatment = "full",
                                      cld(emmeans(vcmax.gs, ~n.trt*inoc, 
                                                  type = "response"),
-                                         Letters = LETTERS))
+                                         Letters = letters))
 vcmax.gs.pairwise.soiln <- data.frame(variable = "vcmax.gs",
                                       treatment = "n.trt",
                                       cld(emmeans(vcmax.gs, ~n.trt, 
                                                   type = "response"),
-                                          Letters = LETTERS))
+                                          Letters = letters))
 vcmax.gs.pairwise.inoc <- data.frame(variable = "vcmax.gs",
                                       treatment = "inoc",
                                       cld(emmeans(vcmax.gs, ~inoc, 
                                                   type = "response"),
-                                          Letters = LETTERS))
+                                          Letters = letters))
 vcmax.gs.pairwise <- vcmax.gs.pairwise.full %>%
   full_join(vcmax.gs.pairwise.soiln) %>%
   full_join(vcmax.gs.pairwise.inoc) %>%
@@ -749,8 +666,9 @@ vcmax.gs.pairwise <- vcmax.gs.pairwise.full %>%
 ##########################################################################
 ## Narea:gs
 ##########################################################################
-narea.gs <- lmer(log(narea.gs) ~ n.trt * inoc + (1 | block), 
-                 data = data)
+data$narea.gs[39] <- NA
+
+narea.gs <- lmer(log(narea.gs) ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(narea.gs)
@@ -774,17 +692,17 @@ narea.gs.pairwise.full <- data.frame(variable = "narea.gs",
                                      treatment = "full",
                                      cld(emmeans(narea.gs, ~n.trt*inoc, 
                                                  type = "response"),
-                                         Letters = LETTERS))
+                                         Letters = letters))
 narea.gs.pairwise.soiln <- data.frame(variable = "narea.gs",
                                       treatment = "n.trt",
                                       cld(emmeans(narea.gs, ~n.trt, 
                                                   type = "response"),
-                                          Letters = LETTERS))
+                                          Letters = letters))
 narea.gs.pairwise.inoc <- data.frame(variable = "narea.gs",
                                      treatment = "inoc",
                                      cld(emmeans(narea.gs, ~inoc, 
                                                  type = "response"),
-                                         Letters = LETTERS))
+                                         Letters = letters))
 narea.gs.pairwise <- narea.gs.pairwise.full %>%
   full_join(narea.gs.pairwise.soiln) %>%
   full_join(narea.gs.pairwise.inoc) %>%
@@ -819,15 +737,15 @@ emmeans(tla, pairwise~inoc)
 tla.pairwise.full <- data.frame(variable = "total.leaf.area",
                                treatment = "full",
                                cld(emmeans(tla, ~n.trt*inoc),
-                                   Letters = LETTERS))
+                                   Letters = letters))
 tla.pairwise.soiln <- data.frame(variable = "total.leaf.area",
                                 treatment = "n.trt",
                                 cld(emmeans(tla, ~n.trt),
-                                    Letters = LETTERS))
+                                    Letters = letters))
 tla.pairwise.inoc <- data.frame(variable = "total.leaf.area",
                                treatment = "inoc",
                                cld(emmeans(tla, ~inoc),
-                                   Letters = LETTERS))
+                                   Letters = letters))
 tla.pairwise <- tla.pairwise.full %>%
   full_join(tla.pairwise.soiln) %>%
   full_join(tla.pairwise.inoc) %>%
@@ -861,18 +779,327 @@ emmeans(totalbiomass, pairwise~inoc)
 tbio.pairwise.full <- data.frame(variable = "total.biomass",
                                 treatment = "full",
                                 cld(emmeans(totalbiomass, ~n.trt*inoc),
-                                    Letters = LETTERS))
+                                    Letters = letters))
 tbio.pairwise.soiln <- data.frame(variable = "total.biomass",
                                  treatment = "n.trt",
                                  cld(emmeans(totalbiomass, ~n.trt),
-                                     Letters = LETTERS))
+                                     Letters = letters))
 tbio.pairwise.inoc <- data.frame(variable = "total.biomass",
                                 treatment = "inoc",
                                 cld(emmeans(totalbiomass, ~inoc),
-                                    Letters = LETTERS))
+                                    Letters = letters))
 tbio.pairwise <- tbio.pairwise.full %>%
   full_join(tbio.pairwise.soiln) %>%
   full_join(tbio.pairwise.inoc) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
+## Carbon cost to acquire nitrogen
+##########################################################################
+## Set up model
+n.cost <- lmer(log(n.cost) ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(n.cost)
+qqnorm(residuals(n.cost))
+qqline(residuals(n.cost))
+hist(residuals(n.cost))
+shapiro.test(residuals(n.cost))
+outlierTest(n.cost)
+
+# Model output
+summary(n.cost)
+Anova(n.cost)
+
+# Pairwise comparisons
+emmeans(n.cost, pairwise~n.trt)
+emmeans(n.cost, pairwise~inoc)
+cld(emmeans(n.cost, pairwise~n.trt * inoc))
+
+# Write data frame for compact lettering
+ncost.pairwise.full <- data.frame(variable = "ncost",
+                                 treatment = "full",
+                                 cld(emmeans(n.cost, ~n.trt*inoc, 
+                                             type = "response"),
+                                     Letters = letters))
+ncost.pairwise.soiln <- data.frame(variable = "ncost",
+                                  treatment = "n.trt",
+                                  cld(emmeans(n.cost, ~n.trt,
+                                              type = "response"),
+                                      Letters = letters))
+ncost.pairwise.inoc <- data.frame(variable = "ncost",
+                                 treatment = "inoc",
+                                 cld(emmeans(n.cost, ~inoc,
+                                             type = "response"),
+                                     Letters = letters))
+ncost.pairwise <- ncost.pairwise.full %>%
+  full_join(ncost.pairwise.soiln) %>%
+  full_join(ncost.pairwise.inoc) %>%
+  dplyr::rename(emmean = response) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
+## Belowground carbon
+##########################################################################
+## Set up model
+bg.carbon <- lmer(log(bg.total.c) ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(bg.carbon)
+qqnorm(residuals(bg.carbon))
+qqline(residuals(bg.carbon))
+hist(residuals(bg.carbon))
+shapiro.test(residuals(bg.carbon))
+outlierTest(bg.carbon)
+
+# Model output
+summary(bg.carbon)
+Anova(bg.carbon)
+
+# Write data frame for compact lettering
+bgc.pairwise.full <- data.frame(variable = "bgc",
+                                  treatment = "full",
+                                  cld(emmeans(bg.carbon, ~n.trt*inoc, 
+                                              type = "response"),
+                                      Letters = letters))
+bgc.pairwise.soiln <- data.frame(variable = "bgc",
+                                   treatment = "n.trt",
+                                   cld(emmeans(bg.carbon, ~n.trt,
+                                               type = "response"),
+                                       Letters = letters))
+bgc.pairwise.inoc <- data.frame(variable = "bgc",
+                                  treatment = "inoc",
+                                  cld(emmeans(bg.carbon, ~inoc,
+                                              type = "response"),
+                                      Letters = letters))
+bgc.pairwise <- bgc.pairwise.full %>%
+  full_join(bgc.pairwise.soiln) %>%
+  full_join(bgc.pairwise.inoc) %>%
+  dplyr::rename(emmean = response) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
+## Whole plant nitrogen (denominator of carbon cost to acquire nitrogen)
+##########################################################################
+## Set up model
+wp.nitrogen <- lmer(wp.total.n ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(wp.nitrogen)
+qqnorm(residuals(wp.nitrogen))
+qqline(residuals(wp.nitrogen))
+hist(residuals(wp.nitrogen))
+shapiro.test(residuals(wp.nitrogen))
+outlierTest(wp.nitrogen)
+
+# Model output
+summary(wp.nitrogen)
+Anova(wp.nitrogen)
+
+# Pairwise comparisons
+emmeans(wp.nitrogen, pairwise~n.trt)
+emmeans(wp.nitrogen, pairwise~inoc)
+cld(emmeans(wp.nitrogen, pairwise~n.trt * inoc, type = "response"))
+
+# Write data frame for compact lettering
+wpn.pairwise.full <- data.frame(variable = "wpn",
+                                treatment = "full",
+                                cld(emmeans(bg.carbon, ~n.trt*inoc),
+                                    Letters = letters))
+wpn.pairwise.soiln <- data.frame(variable = "wpn",
+                                 treatment = "n.trt",
+                                 cld(emmeans(bg.carbon, ~n.trt),
+                                     Letters = letters))
+wpn.pairwise.inoc <- data.frame(variable = "wpn",
+                                treatment = "inoc",
+                                cld(emmeans(bg.carbon, ~inoc),
+                                    Letters = letters))
+wpn.pairwise <- wpn.pairwise.full %>%
+  full_join(wpn.pairwise.soiln) %>%
+  full_join(wpn.pairwise.inoc) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
+## Nodule biomass : root biomass
+##########################################################################
+## Set up model
+nod.root <- lmer(sqrt(nod.root.biomass) ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(nod.root)
+qqnorm(residuals(nod.root))
+qqline(residuals(nod.root))
+hist(residuals(nod.root))
+shapiro.test(residuals(nod.root))
+outlierTest(nod.root)
+
+# Model output
+summary(nod.root)
+Anova(nod.root)
+
+# Pairwise comparisons
+emmeans(nod.root, pairwise~n.trt)
+emmeans(nod.root, pairwise~inoc)
+cld(emmeans(nod.root, pairwise~n.trt * inoc, type = "response"))
+
+# Write data frame for compact lettering
+nodroot.pairwise.full <- data.frame(variable = "nodroot",
+                                treatment = "full",
+                                cld(emmeans(nod.root, ~n.trt*inoc,
+                                            type = "response"),
+                                    Letters = letters))
+nodroot.pairwise.soiln <- data.frame(variable = "nodroot",
+                                 treatment = "n.trt",
+                                 cld(emmeans(nod.root, ~n.trt,
+                                             type = "response"),
+                                     Letters = letters))
+nodroot.pairwise.inoc <- data.frame(variable = "nodroot",
+                                treatment = "inoc",
+                                cld(emmeans(nod.root, ~inoc,
+                                            type = "response"),
+                                    Letters = letters))
+nodroot.pairwise <- nodroot.pairwise.full %>%
+  full_join(nodroot.pairwise.soiln) %>%
+  full_join(nodroot.pairwise.inoc) %>%
+  dplyr::rename(emmean = response) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
+## Nodule biomass
+##########################################################################
+## Set up model
+nod <- lmer(sqrt(nodule.biomass) ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(nod)
+qqnorm(residuals(nod))
+qqline(residuals(nod))
+hist(residuals(nod))
+shapiro.test(residuals(nod))
+outlierTest(nod)
+
+# Model output
+summary(nod)
+Anova(nod)
+
+# Pairwise comparisons
+emmeans(nod, pairwise~n.trt)
+emmeans(nod, pairwise~inoc)
+
+# Write data frame for compact lettering
+nod.pairwise.full <- data.frame(variable = "nod",
+                                    treatment = "full",
+                                    cld(emmeans(nod, ~n.trt*inoc,
+                                                type = "response"),
+                                        Letters = letters))
+nod.pairwise.soiln <- data.frame(variable = "nod",
+                                     treatment = "n.trt",
+                                     cld(emmeans(nod, ~n.trt,
+                                                 type = "response"),
+                                         Letters = letters))
+nod.pairwise.inoc <- data.frame(variable = "nod",
+                                    treatment = "inoc",
+                                    cld(emmeans(nod, ~inoc,
+                                                type = "response"),
+                                        Letters = letters))
+nod.pairwise <- nod.pairwise.full %>%
+  full_join(nod.pairwise.soiln) %>%
+  full_join(nod.pairwise.inoc) %>%
+  dplyr::rename(emmean = response) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+
+##########################################################################
+## Root biomass
+##########################################################################
+## Set up model
+root <- lmer(log(root.biomass) ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(root)
+qqnorm(residuals(root))
+qqline(residuals(root))
+hist(residuals(root))
+shapiro.test(residuals(root))
+outlierTest(root)
+
+# Model output
+summary(root)
+Anova(root)
+
+# Pairwise comparisons
+emmeans(root, pairwise~n.trt)
+
+# Write data frame for compact lettering
+root.pairwise.full <- data.frame(variable = "root",
+                                    treatment = "full",
+                                    cld(emmeans(root, ~n.trt*inoc,
+                                                type = "response"),
+                                        Letters = letters))
+root.pairwise.soiln <- data.frame(variable = "root",
+                                     treatment = "n.trt",
+                                     cld(emmeans(root, ~n.trt,
+                                                 type = "response"),
+                                         Letters = letters))
+root.pairwise.inoc <- data.frame(variable = "root",
+                                    treatment = "inoc",
+                                    cld(emmeans(root, ~inoc,
+                                                type = "response"),
+                                        Letters = letters))
+root.pairwise <- root.pairwise.full %>%
+  full_join(root.pairwise.soiln) %>%
+  full_join(root.pairwise.inoc) %>%
+  dplyr::rename(emmean = response) %>%
+  mutate(.group = trimws(.group, "both"),
+         compact = .group)
+
+##########################################################################
+## BVR
+##########################################################################
+## Set up model
+bvr <- lmer(log(bvr) ~ n.trt * inoc + (1 | block), data = data)
+
+# Check model assumptions
+plot(bvr)
+qqnorm(residuals(bvr))
+qqline(residuals(bvr))
+hist(residuals(bvr))
+shapiro.test(residuals(bvr))
+outlierTest(bvr)
+
+# Model output
+summary(bvr)
+Anova(bvr)
+
+# Pairwise comparisons
+emmeans(bvr, pairwise~n.trt)
+
+# Write data frame for compact lettering
+bvr.pairwise.full <- data.frame(variable = "bvr",
+                                 treatment = "full",
+                                 cld(emmeans(bvr, ~n.trt*inoc,
+                                             type = "response"),
+                                     Letters = letters))
+bvr.pairwise.soiln <- data.frame(variable = "bvr",
+                                  treatment = "n.trt",
+                                  cld(emmeans(bvr, ~n.trt,
+                                              type = "response"),
+                                      Letters = letters))
+bvr.pairwise.inoc <- data.frame(variable = "bvr",
+                                 treatment = "inoc",
+                                 cld(emmeans(bvr, ~inoc,
+                                             type = "response"),
+                                     Letters = letters))
+bvr.pairwise <- bvr.pairwise.full %>%
+  full_join(bvr.pairwise.soiln) %>%
+  full_join(bvr.pairwise.inoc) %>%
+  dplyr::rename(emmean = response) %>%
   mutate(.group = trimws(.group, "both"),
          compact = .group)
 
@@ -881,8 +1108,6 @@ tbio.pairwise <- tbio.pairwise.full %>%
 ##########################################################################
 comp.letters <- nmass.pairwise %>%
   full_join(sla.pairwise) %>%
-  full_join(fa.pairwise) %>%
-  full_join(fb.pairwise) %>%
   full_join(narea.pairwise) %>%
   full_join(tla.pairwise) %>%
   full_join(a400.pairwise) %>%
@@ -898,13 +1123,21 @@ comp.letters <- nmass.pairwise %>%
   full_join(vcmax.gs.pairwise) %>%
   full_join(narea.gs.pairwise) %>%
   full_join(tbio.pairwise) %>%
+  full_join(ncost.pairwise) %>%
+  full_join(bgc.pairwise) %>%
+  full_join(wpn.pairwise) %>%
+  full_join(nodroot.pairwise) %>%
+  full_join(nod.pairwise) %>%
+  full_join(root.pairwise) %>%
+  full_join(bvr.pairwise) %>%
   dplyr::rename(comparison = treatment) %>%
   unite("treatment", n.trt:inoc, remove = "FALSE") %>%
-  mutate(treatment = factor(treatment, levels = c("LN_NI", "HN_NI",
-                                                  "LN_YI", "HN_YI")),
+  mutate(treatment = factor(treatment, levels = c("ln_ni", "hn_ni",
+                                                  "ln_yi", "hn_yi")),
          compact = tolower(compact)) %>%
   data.frame()
 comp.letters
 
 ## Write pairwise comparison csv file
-write.csv(comp.letters, "../data/2021NxI_compact_letters.csv")
+write.csv(comp.letters, "../data/2021NxI_compact_letters.csv", 
+          row.names = FALSE)
