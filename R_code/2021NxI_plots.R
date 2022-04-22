@@ -24,12 +24,14 @@ pubtheme <- theme_bw() +
 data <- read.csv("../data/2021NxI_trait_data.csv", na.strings = "NA")
 data <- data %>%
   unite("treatment", n.trt:inoc, remove = "FALSE") %>%
-  mutate(treatment = factor(treatment, levels = c("LN_NI", "LN_YI",
-                                                  "HN_NI", "HN_YI")))
+  mutate(treatment = factor(treatment, levels = c("ln_ni", "ln_yi",
+                                                  "hn_ni", "hn_yi")),
+         nod.root.biomass = nodule.biomass / root.biomass)
 
 ## Load compact letters data and add treatment column
 comp.letters <- read.csv("../data/2021NxI_compact_letters.csv",
                          na.strings = "<NA>")
+
 
 ## Add colorblind friendly palette
 cbbPalette <- c("#DDAA33", "#BB5566", "#004488", "#BBBBBB")
@@ -324,44 +326,6 @@ vcmax.gs <- ggplot(data = data, aes(x = treatment, y = vcmax.gs, fill = inoc)) +
 vcmax.gs
 
 ##########################################################################
-## Focal area
-##########################################################################
-fa <- ggplot(data = data, aes(x = treatment, y = focal.area, fill = inoc)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.05, size = 2, alpha = 0.5) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "focal.area" & comparison == "full"),
-            aes(y = 90, label = compact), fontface = "bold", size = 5) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70 ppm", "70 ppm", "630 ppm", "630 ppm")) +
-  scale_y_continuous(limits = c(0, 90), breaks = seq(0, 90, 30)) +
-  labs(x = NULL,
-       y = expression(bold("Focal area (cm"^"2"~")")),
-       fill = "Inoculation status") +
-  pubtheme
-fa
-
-##########################################################################
-## Focal biomass
-##########################################################################
-fbio <- ggplot(data = data, aes(x = treatment, y = focal.biomass, fill = inoc)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.05, size = 2, alpha = 0.5) +
-  geom_text(data = subset(comp.letters,
-                          variable == "focal.biomass" & comparison == "full"),
-            aes(y = 0.15, label = compact), fontface = "bold", size = 5) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70 ppm", "70 ppm", "630 ppm", "630 ppm")) +
-  scale_y_continuous(limits = c(0, 0.15), breaks = seq(0, 0.15, 0.05)) +
-  labs(x = "Soil N fertilization",
-       y = "Dry leaf biomass (g)",
-       fill = "Inoculation status") +
-  pubtheme
-fbio
-
-##########################################################################
 ## Total leaf area
 ##########################################################################
 tla <- ggplot(data = data, aes(x = treatment, y = total.leaf.area, fill = inoc)) +
@@ -398,6 +362,140 @@ tbio <- ggplot(data = data, aes(x = treatment, y = total.biomass, fill = inoc)) 
        fill = "Inoculation status") +
   pubtheme
 tbio
+
+##########################################################################
+## Structural carbon costs to acquire nitrogen
+##########################################################################
+ncost <- ggplot(data = data, aes(x = treatment, y = n.cost, fill = inoc)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.05, size = 2, shape = 21, fill = "grey", alpha = 0.75) +
+  geom_text(data = subset(comp.letters, variable == "ncost" & comparison == "full"),
+            aes(y = 20, label = .group), fontface = "bold", size = 5) +
+  scale_y_continuous(limits = c(0, 20), breaks = seq(0, 20, 5)) +
+  scale_x_discrete(labels = c("70 ppm", "70 ppm", "630 ppm","630 ppm")) +
+  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
+                                                    "Inoculated")) +
+  labs(x = NULL,
+       y = expression(bold("N"["cost"]~"(g C g N"^"-1"~")")),
+       fill = "Inoculation status") +
+  pubtheme
+ncost
+
+##########################################################################
+## Belowground carbon figure
+##########################################################################
+bgc.plot <- ggplot(data = data, aes(x = treatment, y = bg.total.c, fill = inoc)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.05, size = 2, shape = 21, fill = "grey", alpha = 0.75) +
+  geom_text(data = subset(comp.letters, variable == "bgc" & comparison == "full"),
+            aes(y = 2, label = .group), fontface = "bold", size = 5) +
+  scale_y_continuous(limits = c(0, 2), breaks = seq(0, 2, 0.5)) +
+  scale_x_discrete(labels = c("70 ppm", "70 ppm", "630 ppm","630 ppm")) +
+  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
+                                                    "Inoculated")) +
+  labs(x = NULL,
+       y = expression(bold("C"["bg"]~"(g C)")),
+       fill = "Inoculation status") +
+  pubtheme
+bgc.plot
+
+##########################################################################
+## Whole plant nitrogen
+##########################################################################
+wpn.plot <- ggplot(data = data, aes(x = treatment, y = wp.total.n, fill = inoc)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.05, size = 2, shape = 21, fill = "grey", alpha = 0.75) +
+  geom_text(data = subset(comp.letters, variable == "wpn" & comparison == "full"),
+            aes(y = 0.3, label = .group), fontface = "bold", size = 5) +
+  scale_y_continuous(limits = c(0, 0.3), breaks = seq(0, 0.3, 0.1)) +
+  scale_x_discrete(labels = c("70 ppm", "70 ppm", "630 ppm", "630 ppm")) +
+  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
+                                                    "Inoculated")) +
+  labs(x = NULL,
+       y = expression(bold("N"["wp"]~"(g N)")),
+       fill = "Inoculation status") +
+  pubtheme
+wpn.plot
+
+##########################################################################
+## Root nodule biomass:root biomass figure
+##########################################################################
+nodroot.plot <- ggplot(data = data, aes(x = treatment, 
+                                        y = nod.root.biomass, fill = inoc)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.05, size = 2, shape = 21, fill = "grey", alpha = 0.75) +
+  geom_text(data = subset(comp.letters, variable == "nodroot" & comparison == "full"),
+            aes(y = 0.1, label = .group), fontface = "bold", size = 5) +
+  scale_y_continuous(limits = c(0, 0.1), breaks = seq(0, 0.1, 0.025)) +
+  scale_x_discrete(labels = c("70 ppm", "70 ppm", "630 ppm", "630 ppm")) +
+  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
+                                                    "Inoculated")) +
+  labs(x = NULL,
+       y = "Nodule biomass: root biomass",
+       fill = "Inoculation status") +
+  pubtheme
+nodroot.plot
+
+##########################################################################
+## Root nodule biomass figure
+##########################################################################
+nod.plot <- ggplot(data = data, aes(x = treatment, 
+                                    y = nodule.biomass,
+                                    fill = inoc)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.05, size = 2, shape = 21, fill = "grey", alpha = 0.75) +
+  geom_text(data = subset(comp.letters, variable == "nod" & comparison == "full"),
+            aes(y = 0.1, label = .group), fontface = "bold", size = 5) +
+  scale_y_continuous(limits = c(0, 0.1), breaks = seq(0, 0.1, 0.025)) +
+  scale_x_discrete(labels = c("70 ppm", "70 ppm", "630 ppm", "630 ppm")) +
+  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
+                                                    "Inoculated")) +
+  labs(x = NULL,
+       y = "Nodule biomass (g)",
+       fill = "Inoculation status") +
+  pubtheme
+
+##########################################################################
+## Root biomass figure
+##########################################################################
+root.plot <- ggplot(data = data, aes(x = treatment, 
+                                     y = root.biomass,
+                                     fill = inoc)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.05, size = 2, shape = 21, fill = "grey", alpha = 0.75) +
+  geom_text(data = subset(comp.letters, variable == "root" & comparison == "full"),
+            aes(y = 4, label = .group), fontface = "bold", size = 5) +
+  scale_y_continuous(limits = c(0, 4), breaks = seq(0, 4, 1)) +
+  scale_x_discrete(labels = c("70 ppm", "70 ppm", "630 ppm", "630 ppm")) +
+  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
+                                                    "Inoculated")) +
+  labs(x = "Soil nitrogen fertilization",
+       y = "Root biomass (g)",
+       fill = "Inoculation status") +
+  pubtheme
+root.plot
+
+##########################################################################
+## BVR figure
+##########################################################################
+bvr.plot <- ggplot(data = data, aes(x = treatment,
+                                    y = bvr, fill = inoc)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.05, size = 2, shape = 21, fill = "grey", alpha = 0.75) +
+  geom_text(data = subset(comp.letters, variable == "bvr" & comparison == "full"),
+            aes(y = 2, label = .group), fontface = "bold", size = 5) +
+  geom_hline(yintercept = 1, size = 1.5, linetype = "dashed") +
+  scale_y_continuous(limits = c(0, 2), breaks = seq(0, 2, 0.5)) +
+  scale_x_discrete(labels = c("70 ppm", "70 ppm", "630ppm", "630 ppm")) +
+  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
+                                                    "Inoculated")) +
+  labs(x = "Soil nitrogen fertilization",
+       y = expression(bold("Biomass: pot volume (g L"^"-1"~")")),
+       fill = "Inoculation status") +
+  pubtheme
+bvr.plot
+
+
 
 ##########################################################################
 ## Figure 1: Leaf nitrogen allocation
@@ -437,7 +535,23 @@ ggarrange(pnue, iwue, narea.gs, vcmax.gs, nrow = 2, ncol = 2,
            width = 6750, height = 5000, res = 600)
 
 ##########################################################################
-## Figure 4: Whole plant measures
+## Figure 4: Structural carbon costs to acquire nitrogen
+##########################################################################
+fig4 <- ncost + (bgc.plot / wpn.plot) + 
+  plot_layout(guides = "collect", widths = c(1.5, 1)) +
+  plot_annotation(tag_levels = "A") & 
+  theme(plot.tag = element_text(size = 15, face = "bold"))
+
+
+ggarrange(fig4) %>%
+  annotate_figure(bottom = text_grob(label = "Soil nitrogen fertilization",
+                                     face = "bold", size = 15, hjust = 0.75)) %>%
+  ggexport(filename = "../docs/figs/2021NxI_soy_fig4_ncost.png", 
+           width = 8000, height = 4000, res = 600)
+
+
+##########################################################################
+## Figure 5: Whole plant measures
 ##########################################################################
 ggarrange(tla, tbio, nrow = 1, ncol = 2, common.legend = TRUE, align = "hv", 
           legend = "right", labels = "AUTO", 
