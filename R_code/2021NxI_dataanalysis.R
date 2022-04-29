@@ -815,7 +815,7 @@ Anova(n.cost)
 # Pairwise comparisons
 emmeans(n.cost, pairwise~n.trt)
 emmeans(n.cost, pairwise~inoc)
-cld(emmeans(n.cost, pairwise~n.trt * inoc))
+emmeans(n.cost, pairwise~n.trt * inoc)
 
 # Write data frame for compact lettering
 ncost.pairwise.full <- data.frame(variable = "ncost",
@@ -902,20 +902,20 @@ Anova(wp.nitrogen)
 # Pairwise comparisons
 emmeans(wp.nitrogen, pairwise~n.trt)
 emmeans(wp.nitrogen, pairwise~inoc)
-cld(emmeans(wp.nitrogen, pairwise~n.trt * inoc, type = "response"))
+emmeans(wp.nitrogen, pairwise~n.trt * inoc)
 
 # Write data frame for compact lettering
 wpn.pairwise.full <- data.frame(variable = "wpn",
                                 treatment = "full",
-                                cld(emmeans(bg.carbon, ~n.trt*inoc),
+                                cld(emmeans(wp.nitrogen, ~n.trt*inoc),
                                     Letters = letters))
 wpn.pairwise.soiln <- data.frame(variable = "wpn",
                                  treatment = "n.trt",
-                                 cld(emmeans(bg.carbon, ~n.trt),
+                                 cld(emmeans(wp.nitrogen, ~n.trt),
                                      Letters = letters))
 wpn.pairwise.inoc <- data.frame(variable = "wpn",
                                 treatment = "inoc",
-                                cld(emmeans(bg.carbon, ~inoc),
+                                cld(emmeans(wp.nitrogen, ~inoc),
                                     Letters = letters))
 wpn.pairwise <- wpn.pairwise.full %>%
   full_join(wpn.pairwise.soiln) %>%
@@ -1034,7 +1034,7 @@ summary(root)
 Anova(root)
 
 # Pairwise comparisons
-emmeans(root, pairwise~n.trt)
+emmeans(root, pairwise~inoc)
 
 # Write data frame for compact lettering
 root.pairwise.full <- data.frame(variable = "root",

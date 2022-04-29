@@ -469,7 +469,7 @@ root.plot <- ggplot(data = data, aes(x = treatment,
   scale_x_discrete(labels = c("70 ppm", "70 ppm", "630 ppm", "630 ppm")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
-  labs(x = "Soil nitrogen fertilization",
+  labs(x = NULL,
        y = "Root biomass (g)",
        fill = "Inoculation status") +
   pubtheme
@@ -561,6 +561,27 @@ ggarrange(tla, tbio, nrow = 1, ncol = 2, common.legend = TRUE, align = "hv",
   ggexport(filename = "../docs/figs/2021NxI_soy_fig4_tla.png", 
            width = 6750, height = 2500, res = 600)
 
+
+##########################################################################
+## Figure 6: Root nodulation
+##########################################################################
+fig6 <- nodroot.plot + (nod.plot / root.plot) + 
+  plot_layout(guides = "collect", widths = c(1.5, 1)) +
+  plot_annotation(tag_levels = "A") & 
+  theme(plot.tag = element_text(size = 15, face = "bold"))
+
+
+
+ggarrange(fig6) %>%
+  annotate_figure(bottom = text_grob(label = "Soil nitrogen fertilization",
+                                     face = "bold", size = 15, hjust = 0.75)) %>%
+  ggexport(filename = "../docs/figs/2021NxI_soy_fig6_nodulation.png", 
+           width = 8000, height = 4000, res = 600)
+
+
+
+
+
 ##########################################################################
 ## Figure 5: Rd:Vcmax
 ##########################################################################
@@ -570,4 +591,11 @@ ggarrange(rd.vcmax, nrow = 1, ncol = 1, common.legend = TRUE, align = "hv",
   ggexport(filename = "../docs/figs/2021NxI_soy_rdvcmax.png", 
            width = 4000, height = 3000, res = 600)
 
+##########################################################################
+## Figure S1: BVR
+##########################################################################
+ggarrange(bvr.plot, nrow = 1, ncol = 1, common.legend = TRUE, align = "hv", 
+          legend = "right", font.label = list(size = 18, face = "bold")) %>%
+  ggexport(filename = "../docs/figs/2021NxI_soy_figS1_bvr.png", 
+           width = 4000, height = 3000, res = 600)
 
