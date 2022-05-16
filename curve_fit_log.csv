@@ -1,65 +1,65 @@
-,id,acceptable.curve,notes
-1,r1_hn_ni,yes,great fit
-2,r1_hn_yi,yes,great fit
-3,r1_ln_ni,yes,questionable TPU fit (seems negligible with Jmax)
-4,r1_ln_yi,yes,TPU fit with three points; otherwise a good curve
-5,r10_hn_ni,yes,TPU fit with four points; great curve
-6,r10_hn_yi,yes,great fit
-7,r10_ln_ni,yes,robust TPU fit
-8,r10_ln_yi,yes,great fit
-9,r11_hn_ni,yes,great fit
-10,r11_hn_yi,yes,Textbook curve; no TPU limitation
-11,r11_ln_ni,yes,great fit
-12,r11_ln_yi,YES,questionable TPU fit (seems negligible with Jmax)
-13,r12_hn_ni,yes,great fit
-14,r12_hn_yi,yes,great fit
-15,r12_ln_ni,yes,great fit
-16,r12_ln_yi,yes,great fit
-17,r13_hn_ni,yes,great fit
-18,r13_hn_yi,yes,great fit
-19,r13_ln_ni,yes,great fit
-20,r13_ln_yi,yes,questionable TPU fit (seems negligible with Jmax)
-21,r14_hn_ni,yes,great fit
-22,r14_hn_yi,yes,great fit
-23,r14_ln_ni,yes,great fit; TPU fit with 5 points
-24,r14_ln_yi,yes,great fit
-25,r15_hn_ni,yes,great fit
-26,r15_hn_yi,yes,great fit
-27,r15_ln_ni,yes,great fit; TPU fit with 6 points
-28,r15_ln_yi,yes,great fit
-29,r16_hn_ni,yes,great fit; TPU fit with 3 points
-30,r16_hn_yi,yes,great fit
-31,r16_ln_ni,yes,great fit
-32,r16_ln_yi,yes,questionable TPU fit (seems negligible with Jmax)
-33,r2_hn_ni,yes,great fit- TPU fit with four points
-34,r2_hn_yi,yes,great fit- TPU fit with 3 points
-35,r2_ln_ni,yes,great fit
-36,r2_ln_yi,yes,questionable TPU fit (seems negligible with Jmax)
-37,r3_hn_ni,yes,great fit
-38,r3_hn_yi,yes,great fit; no TPU limitation evident
-39,r3_ln_ni,yes,great fit; no TPU limitation evident
-40,r3_ln_yi,yes,great fit; TPU fit with 3 points
-41,r4_hn_ni,N/A,need to fit without Rd- no measured Rd paired with curve
-42,r4_hn_yi,yes,great fit; TPU fit with 5 points
-43,r4_ln_ni,yes,great fit
-44,r4_ln_yi,yes,great fit
-45,r5_hn_ni,yes,great fit
-46,r5_hn_yi,yes,great fit
-47,r5_ln_ni,yes,great fit; robust TPU fit
-48,r5_ln_yi,yes,great fit
-49,r6_hn_ni,yes,great fit
-50,r6_hn_yi,yes,great fit- questionable TPU limitation (fit using two points)
-51,r6_ln_ni,maybe,questionable TPU fit
-52,r6_ln_yi,yes,great fit
-53,r7_hn_ni,yes,great fit- questionable TPU limitation (fit using one point)
-54,r7_hn_yi,yes,great fit- no TPU limitation evident
-55,r7_ln_ni,yes,questionable TPU fit (seems negligible with Jmax)
-56,r7_ln_yi,yes,can remove high point at 400 ppm CO2 to improve model fit
-57,r8_hn_ni,yes,great fit- no TPU limitation evident
-58,r8_hn_yi,yes,great fit- questionable TPU limitation (fit using two points)
-59,r8_ln_ni,yes,questionable TPU fit (seems negligible with Jmax)
-60,r8_ln_yi,yes,great fit
-61,r9_hn_ni,yes,great fit- no TPU limitation evident
-62,r9_hn_yi,yes,great fit- no TPU limitation evident
-63,r9_ln_ni,yes,great fit
-64,r9_ln_yi,yes,great fit
+,id,acceptable.curve,notes,tpu.points.removed,anecdotal.ciTransition
+1,r1_hn_ni,yes,great fit,no tpu limitation,
+2,r1_hn_yi,yes,great fit,optimize ci transition,
+3,r1_ln_ni,yes,questionable TPU fit (seems negligible with Jmax),remove final point,
+4,r1_ln_yi,yes,TPU fit with three points; otherwise a good curve,remove final two points,
+5,r10_hn_ni,yes,TPU fit with four points; great curve,"removed points, still tpu limitation along last point",
+6,r10_hn_yi,yes,great fit,"remove final 2 points, need to set CI transition",
+7,r10_ln_ni,yes,robust TPU fit,"remove low CO2 measurement, need to set CI transition",
+8,r10_ln_yi,yes,great fit,optimize ci transition,
+9,r11_hn_ni,yes,great fit,optimize ci transition,
+10,r11_hn_yi,yes,Textbook curve; no TPU limitation,"great fit, although may need to set ci transition",
+11,r11_ln_ni,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+12,r11_ln_yi,yes,questionable TPU fit (seems negligible with Jmax),"great fit, although may need to set ci transition",
+13,r12_hn_ni,yes,great fit,optimize ci transition,
+14,r12_hn_yi,yes,great fit,"remove low CO2 measurement and penultimate datapoint, need to set CI transition",
+15,r12_ln_ni,yes,great fit,remove duplicate 400 ppm and low CO2 measurement. set CI transition,
+16,r12_ln_yi,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+17,r13_hn_ni,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+18,r13_hn_yi,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+19,r13_ln_ni,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+20,r13_ln_yi,yes,questionable TPU fit (seems negligible with Jmax),"remove low CO2 measurement, need to set CI transition",
+21,r14_hn_ni,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+22,r14_hn_yi,yes,great fit,"looks good, might want to play with CI transition",
+23,r14_ln_ni,yes,great fit; TPU fit with 5 points,"remove high CO2 measurement, need to set CI transition",
+24,r14_ln_yi,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+25,r15_hn_ni,yes,great fit,"remove high and low CO2 measurement, neet to set CI transition",
+26,r15_hn_yi,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+27,r15_ln_ni,yes,great fit; TPU fit with 6 points,"remove middle high measurement; low CO2 measurement, neet to set CI transition",
+28,r15_ln_yi,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+29,r16_hn_ni,yes,great fit; TPU fit with 3 points,"remove low CO2 measurement, need to set CI transition",
+30,r16_hn_yi,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+31,r16_ln_ni,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+32,r16_ln_yi,yes,questionable TPU fit (seems negligible with Jmax),"remove low CO2 measurement and penultimate datapoint, need to set CI transition",
+33,r2_hn_ni,yes,great fit- TPU fit with four points,"remove high and low CO2 measurement, neet to set CI transition",
+34,r2_hn_yi,yes,great fit- TPU fit with 3 points,"remove low CO2 measurement, need to set CI transition",
+35,r2_ln_ni,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+36,r2_ln_yi,yes,questionable TPU fit (seems negligible with Jmax),"remove low CO2 measurement, need to set CI transition",
+37,r3_hn_ni,yes,great fit,"remove low CO2 measurement, need to set CI transition",
+38,r3_hn_yi,yes,great fit; no TPU limitation evident,"remove low CO2 measurement, need to set CI transition",
+39,r3_ln_ni,yes,great fit; no TPU limitation evident,"remove low CO2 measurement, need to set CI transition",
+40,r3_ln_yi,yes,great fit; TPU fit with 3 points,"remove low CO2 measurement, need to set CI transition",
+41,r4_hn_ni,N/A,need to fit without Rd- no measured Rd paired with curve,"remove low CO2 measurement, need to set CI transition",
+42,r4_hn_yi,yes,great fit; TPU fit with 5 points,"remove two highest CO2 measurements, need to set CI transition",
+43,r4_ln_ni,yes,great fit,optimize ci transition,
+44,r4_ln_yi,yes,great fit,optimize ci transition,
+45,r5_hn_ni,yes,great fit,optimize ci transition,
+46,r5_hn_yi,yes,great fit,"remove penultimate point, set ci transition",
+47,r5_ln_ni,yes,great fit; robust TPU fit,optimize ci transition,
+48,r5_ln_yi,yes,great fit,optimize ci transition,
+49,r6_hn_ni,yes,great fit,optimize ci transition,
+50,r6_hn_yi,yes,great fit- questionable TPU limitation (fit using two points),optimize ci transition,
+51,r6_ln_ni,maybe,questionable TPU fit,optimize ci transition,
+52,r6_ln_yi,yes,great fit,optimize ci transition,
+53,r7_hn_ni,yes,great fit- questionable TPU limitation (fit using one point),optimize ci transition,
+54,r7_hn_yi,yes,great fit- no TPU limitation evident,optimize ci transition,
+55,r7_ln_ni,yes,questionable TPU fit (seems negligible with Jmax),optimize ci transition,
+56,r7_ln_yi,yes,can remove high point at 400 ppm CO2 to improve model fit,optimize ci transition,
+57,r8_hn_ni,yes,great fit- no TPU limitation evident,optimize ci transition,
+58,r8_hn_yi,yes,great fit- questionable TPU limitation (fit using two points),optimize ci transition,
+59,r8_ln_ni,yes,questionable TPU fit (seems negligible with Jmax),optimize ci transition,
+60,r8_ln_yi,yes,great fit,optimize ci transition,
+61,r9_hn_ni,yes,great fit- no TPU limitation evident,optimize ci transition,
+62,r9_hn_yi,yes,great fit- no TPU limitation evident,optimize ci transition,
+63,r9_ln_ni,yes,great fit,optimize ci transition,
+64,r9_ln_yi,yes,great fit,optimize ci transition,
