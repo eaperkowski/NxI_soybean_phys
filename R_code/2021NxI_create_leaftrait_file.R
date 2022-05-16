@@ -213,12 +213,19 @@ aci.merged <- df.aci %>%
   data.frame()
 aci.merged
 
-## Remove rows based on A/Ci fits
-aci.merged$keep.row[c(31, 38, 90, 97, 148, 155, 163, 170, 214,
-                      222, 229, 267, 274, 276, 282, 408, 401,
-                      431, 444, 453, 446, 468, 506, 513, 519,
-                      526, 698, 705, 749, 755, 802, 809, 815,
-                      871, 872, 922, 929, 937, 938)] <- "no"
+## Remove rows based on A/Ci fits. Also remove points that likely
+## confer tpu limitation
+aci.merged$keep.row[c(31, 38, 44, 51, 52, 53, 56, 58, 59, 65,
+                      70, 71, 80, 90, 95, 97, 110, 124, 138, 
+                      148, 153, 155, 163, 168, 170, 183, 198, 205,
+                      207, 212, 214, 222, 227, 229, 242, 257, 267, 
+                      272, 274, 276, 282, 287, 302, 317, 340, 347,
+                      362, 370, 377, 391, 394, 408, 401, 406, 421,
+                      431, 436, 444, 451, 453, 446, 466, 468, 473,
+                      481, 489, 526, 620, 621, 681, 698, 705, 749, 
+                      755, 802, 809, 815, 871, 872, 922, 929, 937, 
+                      938)] <- "no"
+aci.merged$keep.row[aci.merged$A < -1.5] <- "yes"
 
 aci.temp <- aci.merged %>%
   filter(keep.row == "yes") %>%
@@ -242,7 +249,7 @@ a.gs <- aci.merged %>%
 a.gs
 
 #####################################################################
-# Run A/Ci curves with TPU limitation
+# Run A/Ci curves without TPU limitation
 #####################################################################
 aci.tpu <- aci.merged %>%
   filter(keep.row == "yes") %>%
@@ -252,49 +259,22 @@ aci.tpu <- aci.merged %>%
                           Ci = "Ci",
                           PPFD = "Qin",
                           Rd = "rd"),
-          fitTPU = TRUE,
+          fitTPU = FALSE,
           useRd = TRUE,
           Tcorrect = FALSE)
 
 ## Check plots for fit and check if any points need to be removed
-# plot(aci.tpu[[4]])
-# aci.tpu[[4]]
-
-## Remove r4_hn_ni from list (no fit because no Rd value)
-aci.tpu$r4_hn_ni <- NULL
-
-## Do fitaci fxn for r4_hn_ni with useRd = FALSE
-r4_hn_ni <- fitaci(subset(aci.merged, id == "r4_hn_ni"),
-                   varnames = list(ALEAF = "A",
-                                   Tleaf = "Tair",
-                                   Ci = "Ci",
-                                   PPFD = "Qin"),
-                   fitTPU = TRUE,
-                   useRd = FALSE,
-                   Tcorrect = FALSE)
-
-## Check model fit for r4_hn_ni
-plot(r4_hn_ni)
-
-## Create data frame by transposing r4_hn_ni coefficients, to be
-## merged back into larger fitacis list
-aci.r4_hn_ni <- data.frame(id = "r4_hn_ni",
-                           t(coef(r4_hn_ni)))
-
-## Check that transposing looks right. Should have one column with id
-## on left column with column for each of Vcmax, Jmax, Rd, and TPU
-head(aci.r4_hn_ni)
+plot(aci.tpu[[47]])
+aci.tpu[[47]]
 
 ## Extract coefficients and separate id into rep, n.trt, and inoc.
 ## Also, merge r4_hn_ni coefficients. Add leaf temp for standardizing
 ## Vcmax and Jmax to 25 deg C
 aci.coef <- aci.tpu %>%
   coef() %>%
-  full_join(aci.r4_hn_ni) %>%
   dplyr::select(id,
                 vcmax = Vcmax,
-                jmax = Jmax,
-                TPU) %>%
+                jmax = Jmax) %>%
   separate(col = "id",
          sep = "(_*)[_]_*",
          into = c("rep", "n.trt", "inoc"),
@@ -319,6 +299,8 @@ aci.coef <- aci.merged %>%
 ## Check aci.coef data frame. Should have id, n.trt, inoc, machine, 
 ## model coefficients, and block as designated columns
 head(aci.coef)
+
+
 
 #####################################################################
 # Import HOBO data, determine mean temp over experiment. Will be added
@@ -362,7 +344,7 @@ aci.coef <- aci.coef %>%
          narea.gs = narea / gsw,
          pnue = A / narea) %>% # gs is not temp standardized, so using Vcmax
   dplyr::select(id, rep, n.trt, inoc, block, machine, anet = A, vcmax, vcmax25, 
-                jmax, jmax25, rd, rd25, TPU, rd25.vcmax25, jmax25.vcmax25, gsw, 
+                jmax, jmax25, rd, rd25, rd25.vcmax25, jmax25.vcmax25, gsw, 
                 ci.ca, pnue, iwue, vcmax.gs, narea.gs, sla, focal.area, 
                 focal.biomass, leaf.n, leaf.cn, narea, everything(), 
                 -leaf.temp, -tleaf) %>%
