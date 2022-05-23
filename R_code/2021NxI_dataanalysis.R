@@ -7,6 +7,8 @@ library(dplyr)
 library(MuMIn)
 library(multcomp)
 library(rcompanion)
+library(report)
+
 
 ## Remove digit bounds in emmeans package
 emm_options(opt.digits = FALSE)
@@ -44,6 +46,8 @@ Anova(nmass)
 r.squaredGLMM(nmass)
 
 # Pairwise comparisons
+emmeans(nmass, pairwise ~ n.trt)
+
 cld(emmeans(nmass, pairwise ~ n.trt * inoc))
 ## Increasing soil nitrogen availability generally increases Nmass. The 
 ## positive effect of inoculation status on Nmass was only observed at 
@@ -141,6 +145,8 @@ r.squaredGLMM(narea)
 
 # Pairwise comparisons
 emmeans(narea, pairwise ~ n.trt * inoc)
+emmeans(narea, pairwise~n.trt)
+
 ## Increasing soil nitrogen availability generally increases Narea. The 
 ## positive effect of inoculation status on Narea was only observed at 
 ## low nitrogen. There was no effect of inoculation status under high nitrogen
@@ -272,6 +278,7 @@ r.squaredGLMM(jmax25)
 
 # Pairwise comparisons
 emmeans(jmax25, pairwise~n.trt) # Nitrogen addition decreases Jmax25?
+emmeans(jmax25, pairwise~inoc)
 
 # Emmean output for fig making
 jmax.pairwise.full <- data.frame(variable = "jmax25",
@@ -397,9 +404,9 @@ rd.pairwise <- rd.pairwise.full %>%
 ##########################################################################
 ## Rd:Vcmax (Vcmax is not standardized since Rd is not temp standardized)
 ##########################################################################
-data$rd25.vcmax25[c(35)] <- NA
+data$rd25.vcmax25[c(19, 35)] <- NA
 
-rd.vcmax <- lmer(rd25.vcmax25 ~ n.trt * inoc + (1 | block), data = data)
+rd.vcmax <- lmer(log(rd25.vcmax25) ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(rd.vcmax)
@@ -415,7 +422,7 @@ Anova(rd.vcmax)
 r.squaredGLMM(rd.vcmax)
 
 # Pairwise comparisons
-emmeans(rd.vcmax, pairwise~n.trt)
+emmeans(rd.vcmax, pairwise~n.trt, type = "response")
 # High nitrogen increases Rd:Vcmax regardless of inoculation status
 # Driven by both an increase in Rd and reduction in Vcmax with increasing soil N
 emmeans(rd.vcmax, pairwise~n.trt*inoc)
@@ -546,6 +553,7 @@ r.squaredGLMM(pnue)
 
 # Pairwise comparisons
 cld(emmeans(pnue, pairwise~n.trt*inoc))
+emmeans(pnue, pairwise~n.trt)
 ## Interaction indicated a marginal negative effect of inoculation status
 ## on PNUE under low N fertilization, but no effect of inoculation status under
 ## high N fertilization. N fertilization generally reduced PNUE
@@ -620,7 +628,9 @@ iwue.pairwise <- iwue.pairwise.full %>%
 ##########################################################################
 ## Vcmax:gs
 ##########################################################################
-vcmax.gs <- lmer(log(vcmax.gs) ~ n.trt * inoc + (1 | block), data = data)
+data$vcmax.gs[c(23, 49, 54, 59)] <- NA
+
+vcmax.gs <- lmer(vcmax.gs ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(vcmax.gs)
@@ -668,6 +678,8 @@ vcmax.gs.pairwise <- vcmax.gs.pairwise.full %>%
 ##########################################################################
 data$narea.gs[39] <- NA
 
+data$narea
+
 narea.gs <- lmer(log(narea.gs) ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
@@ -684,8 +696,9 @@ Anova(narea.gs)
 r.squaredGLMM(narea.gs)
 
 # Pairwise comparisons
-emmeans(narea.gs, pairwise~n.trt)
-# Increasing nitrogen increases Narea:gs throughn ... 
+emmeans(narea.gs, pairwise~n.trt, type = "response")
+# Increasing nitrogen increases Narea:gs through and increase in Narea and
+# decrease in gs
 
 # Emmean for fig making
 narea.gs.pairwise.full <- data.frame(variable = "narea.gs",
@@ -772,7 +785,7 @@ r.squaredGLMM(totalbiomass)
 
 # Pairwise comparisons
 emmeans(totalbiomass, pairwise~n.trt*inoc)
-emmeans(totalbiomass, pairwise~n.trt)
+emmeans(totalbiomass, pairwise~n.trt, type = "response")
 emmeans(totalbiomass, pairwise~inoc)
 
 
@@ -813,9 +826,9 @@ summary(n.cost)
 Anova(n.cost)
 
 # Pairwise comparisons
-emmeans(n.cost, pairwise~n.trt)
-emmeans(n.cost, pairwise~inoc)
-emmeans(n.cost, pairwise~n.trt * inoc)
+emmeans(n.cost, pairwise~n.trt, type = "response")
+emmeans(n.cost, pairwise~inoc, type = "response")
+emmeans(n.cost, pairwise~n.trt * inoc, type = "response")
 
 # Write data frame for compact lettering
 ncost.pairwise.full <- data.frame(variable = "ncost",
@@ -857,6 +870,10 @@ outlierTest(bg.carbon)
 # Model output
 summary(bg.carbon)
 Anova(bg.carbon)
+
+# Pairwise comparisons
+emmeans(bg.carbon, pairwise~n.trt)
+emmeans(bg.carbon, pairwise~inoc, type = "response")
 
 # Write data frame for compact lettering
 bgc.pairwise.full <- data.frame(variable = "bgc",
@@ -989,7 +1006,7 @@ Anova(nod)
 
 # Pairwise comparisons
 emmeans(nod, pairwise~n.trt)
-emmeans(nod, pairwise~inoc)
+emmeans(nod, pairwise~inoc, type = "response")
 
 # Write data frame for compact lettering
 nod.pairwise.full <- data.frame(variable = "nod",
@@ -1034,7 +1051,7 @@ summary(root)
 Anova(root)
 
 # Pairwise comparisons
-emmeans(root, pairwise~inoc)
+emmeans(root, pairwise~inoc, type = "response")
 
 # Write data frame for compact lettering
 root.pairwise.full <- data.frame(variable = "root",
