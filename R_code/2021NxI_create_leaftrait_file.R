@@ -104,7 +104,7 @@ leaf.cn <- biomass %>%
 
 fluorescence <- read.csv("../data/2021NxI_fluorescence.csv")
 
-length(which(!is.na(leaf.cn$n.cost)))
+length(which(!is.na(leaf.cn$n.cost))) ## Should read 54 if done correctly
 
 #####################################################################
 # Determine leaf areas
@@ -204,33 +204,25 @@ aci.merged <- df.aci %>%
            sep = "(_*)[_]_*",
            into = c("rep", "n.trt", "inoc"),
            remove = FALSE) %>%
-  mutate(rep = gsub("r", "", rep),
+  group_by(id) %>%
+  mutate(rd.curvefit = temp_standardize(rd,
+                                        estimate.type = "Rd",
+                                        pft = "C3H",
+                                        standard.to = mean(TleafEB),
+                                        tLeaf = tleaf,
+                                        tGrow = 30),
+         rep = gsub("r", "", rep),
          rep = str_pad(rep, width = 2, side = "left", pad = "0"),
-         n.trt = toupper(n.trt),
-         inoc = toupper(inoc),
          keep.row = ifelse(lag(CO2_r > 1501, n = 1L),"no","yes"),
          keep.row = tidyr::replace_na(keep.row, "yes")) %>%
-  data.frame()
+  data.frame() %>%
+  select(-tleaf)
 aci.merged
 
 ## Remove rows based on A/Ci fits. Also remove points that likely
 ## confer tpu limitation
-aci.merged$keep.row[c(31, 38, 44, 51, 52, 53, 56, 58, 59, 65,
-                      70, 71, 80, 90, 95, 97, 110, 124, 138, 
-                      148, 153, 155, 163, 168, 170, 183, 198, 205,
-                      207, 212, 214, 222, 227, 229, 242, 257, 267, 
-                      272, 274, 276, 282, 287, 302, 317, 340, 347,
-                      362, 370, 377, 391, 394, 408, 401, 406, 421,
-                      431, 436, 444, 451, 453, 446, 466, 468, 473,
-                      481, 489, 526, 620, 621, 681, 698, 705, 749, 
-                      755, 802, 809, 815, 871, 872, 922, 929, 937, 
-                      938)] <- "no"
-aci.merged$keep.row[aci.merged$A < -1.5] <- "yes"
-
-aci.temp <- aci.merged %>%
-  filter(keep.row == "yes") %>%
-  group_by(id) %>%
-  summarize(leaf.temp = mean(TleafEB, na.rm = TRUE))
+aci.merged$keep.row[c(31, 38, 489)] <- "no"
+aci.merged$keep.row[aci.merged$A < -1.5] <- "no"
 
 #####################################################################
 # Extract A400, Ci:Ca, gsw values from each ID
@@ -249,23 +241,804 @@ a.gs <- aci.merged %>%
 a.gs
 
 #####################################################################
-# Run A/Ci curves without TPU limitation
+# Rep 1 cluster
 #####################################################################
-aci.tpu <- aci.merged %>%
-  filter(keep.row == "yes") %>%
-  fitacis(group = "id",
-          varnames = list(ALEAF = "A",
-                          Tleaf = "TleafEB",
-                          Ci = "Ci",
-                          PPFD = "Qin",
-                          Rd = "rd"),
-          fitTPU = FALSE,
-          useRd = TRUE,
-          Tcorrect = FALSE)
+r1_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r1_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = FALSE,
+         Tcorrect = FALSE)
+plot(r1_hn_ni)
+coef(r1_hn_ni)
 
-## Check plots for fit and check if any points need to be removed
-plot(aci.tpu[[47]])
-aci.tpu[[47]]
+r1_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r1_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r1_ln_ni)
+r1_ln_ni
+coef(r1_ln_ni)
+
+r1_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r1_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r1_hn_ni)
+r1_hn_ni
+coef(r1_hn_ni)
+
+r1_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r1_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r1_hn_yi)
+r1_hn_yi
+coef(r1_hn_yi)
+
+#####################################################################
+# Rep 2 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 3 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 4 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 5 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 6 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 7 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 8 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 9 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 10 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 11 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 12 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 13 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 14 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 15 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
+
+#####################################################################
+# Rep 16 cluster
+#####################################################################
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 275,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+coef(r2_hn_ni)
+
+r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 300,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_ln_ni)
+r2_ln_ni
+coef(r2_ln_ni)
+
+r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_ni)
+r2_hn_ni
+coef(r2_hn_ni)
+
+r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin"),
+         citransition = 250,
+         fitTPU = TRUE,
+         Tcorrect = FALSE)
+plot(r2_hn_yi)
+r2_hn_yi
+coef(r2_hn_yi)
 
 ## Extract coefficients and separate id into rep, n.trt, and inoc.
 ## Also, merge r4_hn_ni coefficients. Add leaf temp for standardizing
@@ -299,8 +1072,6 @@ aci.coef <- aci.merged %>%
 ## Check aci.coef data frame. Should have id, n.trt, inoc, machine, 
 ## model coefficients, and block as designated columns
 head(aci.coef)
-
-
 
 #####################################################################
 # Import HOBO data, determine mean temp over experiment. Will be added
@@ -352,71 +1123,6 @@ aci.coef <- aci.coef %>%
   data.frame()
 
 head(aci.coef)
-
-# #####################################################################
-# # Run A/Ci curves without TPU limitation
-# #####################################################################
-# aci.notpu <- aci.merged %>%
-#   filter(keep.row == "yes") %>%
-#   fitacis(group = "id",
-#           varnames = list(ALEAF = "A",
-#                           Tleaf = "TleafEB",
-#                           Ci = "Ci",
-#                           PPFD = "Qin",
-#                           Rd = "resp"),
-#           fitTPU = FALSE,
-#           useRd = TRUE,
-#           Tcorrect = FALSE)
-# 
-# ## Remove r4_hn_ni from list (no fit because no Rd value)
-# aci.notpu$r4_hn_ni <- NULL
-# 
-# ## Do fitaci fxn for r4_hn_ni with useRd = FALSE
-# r4_hn_ni.notpu <- fitaci(subset(aci.merged, id == "r4_hn_ni"),
-#                    varnames = list(ALEAF = "A",
-#                                    Tleaf = "TleafEB",
-#                                    Ci = "Ci",
-#                                    PPFD = "Qin"),
-#                    fitTPU = FALSE,
-#                    useRd = FALSE,
-#                    Tcorrect = FALSE)
-# 
-# ## Check model fit for r4_hn_ni
-# plot(r4_hn_ni.notpu)
-# 
-# ## Create data frame by transposing r4_hn_ni coefficients, to be
-# ## merged back into larger fitacis list
-# aci.r4_hn_ni.notpu <- data.frame(id = "r4_hn_ni",
-#                            t(coef(r4_hn_ni.notpu)))
-# 
-# ## Check that transposing looks right. Should have one column with id
-# ## on left column with column for each of Vcmax, Jmax, Rd, and TPU
-# head(aci.r4_hn_ni.notpu)
-# 
-# ## Extract coefficients and separate id into rep, n.trt, and inoc.
-# ## Also, merge r4_hn_ni coefficients
-# aci.coef <- aci.notpu %>%
-#   coef() %>%
-#   full_join(aci.r4_hn_ni.notpu) %>%
-#   full_join(aci.coef) %>%
-#   dplyr::select(id, rep, n.trt,
-#                 inoc, block, machine,
-#                 Vcmax.noTPU = Vcmax, 
-#                 Jmax.noTPU = Jmax, 
-#                 Rd,
-#                 Vcmax.TPU,
-#                 Jmax.TPU,
-#                 TPU.TPU) %>%
-#   mutate(Rd.Vcmax.noTPU = Rd / Vcmax.noTPU,
-#          Rd.Vcmax.TPU = Rd / Vcmax.TPU) %>%
-#   full_join(leaf.area) 
-
-## Check aci.coef data frame. Should have coefficients with and without
-## TPU fit. Rd is the same across all fits, so only including single Rd
-## value. Includes Rd:Vcmax with and without TPU and focal leaf area. 
-## Should also include concatenated id, and columns for rep, n.trt, inoc,
-## block number, and machine
-#head(aci.coef)
 
 ## Write .csv file for leaf trait data
 write.csv(aci.coef, "../data/2021NxI_trait_data.csv", row.names = FALSE)
