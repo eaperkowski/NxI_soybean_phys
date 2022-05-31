@@ -168,11 +168,11 @@ resp.merged <- df.resp %>%
   summarize(rd = mean(resp, na.rm = TRUE),
             tleaf = mean(TleafEB, na.rm = TRUE),
             rd25 = temp_standardize(rd,
-                                      estimate.type = "Rd",
-                                      pft = "C3H",
-                                      standard.to = 25,
-                                      tLeaf = tleaf,
-                                      tGrow = 30)) %>%
+                                    estimate.type = "Rd",
+                                    pft = "C3H",
+                                    standard.to = 25,
+                                    tLeaf = tleaf,
+                                    tGrow = 30)) %>%
   data.frame()
 resp.merged
 
@@ -219,859 +219,1106 @@ aci.merged <- df.aci %>%
   select(-tleaf)
 aci.merged
 
-## Remove rows based on A/Ci fits. Also remove points that likely
-## confer tpu limitation
-aci.merged$keep.row[c(31, 38, 489)] <- "no"
-aci.merged$keep.row[aci.merged$A < -1.5] <- "no"
-
-#####################################################################
-# Extract A400, Ci:Ca, gsw values from each ID
-#####################################################################
-a.gs <- aci.merged %>%
-  filter(keep.row == "yes") %>%
-  group_by(id) %>%
-  filter(CO2_r > 350 & CO2_r < 425) %>%
-  filter(row_number() == 1) %>%
-  dplyr::select(id, rep, n.trt, inoc, machine, A, Ci, Ca, gsw) %>%
-  mutate(iwue = A / gsw,
-         ci.ca = Ci / Ca,
-         n.trt = tolower(n.trt),
-         inoc = tolower(inoc)) %>%
-  data.frame()
-a.gs
+## Remove rows based on A/Ci fits, and also include all points measured
+## at 0 ppm CO2. Workshop w/ Licor noted that 0ppm CO2 turns off mixing fan. 
+#aci.merged$keep.row[aci.merged$A < -1.5] <- "no"
+aci.merged$keep.row[c(31, 282, 340, 431, 444, 452, 487, 488, 489, 
+                      506, 620, 621, 692, 693, 694, 705, 938)] <- "no"
 
 #####################################################################
 # Rep 1 cluster
 #####################################################################
+## r1_hn_ni
 r1_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r1_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = FALSE,
-         Tcorrect = FALSE)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
 plot(r1_hn_ni)
-coef(r1_hn_ni)
 
+
+photo.params <- data.frame(id = "r1_hn_ni", 
+                           vcmax = r1_hn_ni$pars[[1]],
+                           vcmax_se = r1_hn_ni$pars[[4]],
+                           jmax = r1_hn_ni$pars[[2]],
+                           jmax_se = r1_hn_ni$pars[[5]])
+
+## r1_ln_ni
 r1_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r1_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
 plot(r1_ln_ni)
-r1_ln_ni
-coef(r1_ln_ni)
 
-r1_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r1_hn_ni") %>%
+
+photo.params <- photo.params %>%
+  add_row(id = "r1_ln_ni", 
+          vcmax = r1_ln_ni$pars[[1]],
+          vcmax_se = r1_ln_ni$pars[[4]],
+          jmax = r1_ln_ni$pars[[2]],
+          jmax_se = r1_ln_ni$pars[[5]])
+
+
+## r1_ln_yi
+r1_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r1_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r1_hn_ni)
-r1_hn_ni
-coef(r1_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r1_ln_yi)
 
+
+photo.params <- photo.params %>%
+  add_row(id = "r1_ln_yi", 
+          vcmax = r1_ln_yi$pars[[1]],
+          vcmax_se = r1_ln_yi$pars[[4]],
+          jmax = r1_ln_yi$pars[[2]],
+          jmax_se = r1_ln_yi$pars[[5]])
+
+## r1_hn_yi
 r1_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r1_hn_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
 plot(r1_hn_yi)
-r1_hn_yi
-coef(r1_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r1_hn_yi", 
+          vcmax = r1_hn_yi$pars[[1]],
+          vcmax_se = r1_hn_yi$pars[[4]],
+          jmax = r1_hn_yi$pars[[2]],
+          jmax_se = r1_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 2 cluster
 #####################################################################
+## r2_hn_ni
 r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
 plot(r2_hn_ni)
-coef(r2_hn_ni)
 
+photo.params <- photo.params %>%
+  add_row(id = "r2_hn_ni", 
+          vcmax = r2_hn_ni$pars[[1]],
+          vcmax_se = r2_hn_ni$pars[[4]],
+          jmax = r2_hn_ni$pars[[2]],
+          jmax_se = r2_hn_ni$pars[[5]])
+
+## r2_ln_ni
 r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
 plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r2_ln_ni", 
+          vcmax = r2_ln_ni$pars[[1]],
+          vcmax_se = r2_ln_ni$pars[[4]],
+          jmax = r2_ln_ni$pars[[2]],
+          jmax_se = r2_ln_ni$pars[[5]])
+
+
+## r2_ln_yi
+r2_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r2_ln_yi)
 
+
+photo.params <- photo.params %>%
+  add_row(id = "r2_ln_yi", 
+          vcmax = r2_ln_yi$pars[[1]],
+          vcmax_se = r2_ln_yi$pars[[4]],
+          jmax = r2_ln_yi$pars[[2]],
+          jmax_se = r2_ln_yi$pars[[5]])
+
+## r2_hn_yi
 r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE, citransition = 200)
 plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r2_hn_yi", 
+          vcmax = r2_hn_yi$pars[[1]],
+          vcmax_se = r2_hn_yi$pars[[4]],
+          jmax = r2_hn_yi$pars[[2]],
+          jmax_se = r2_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 3 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r3_hn_ni
+r3_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r3_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE, citransition = 200)
+plot(r3_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r3_hn_ni", 
+          vcmax = r3_hn_ni$pars[[1]],
+          vcmax_se = r3_hn_ni$pars[[4]],
+          jmax = r3_hn_ni$pars[[2]],
+          jmax_se = r3_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r3_ln_ni
+r3_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r3_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r3_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+
+
+photo.params <- photo.params %>%
+  add_row(id = "r3_ln_ni", 
+          vcmax = r3_ln_ni$pars[[1]],
+          vcmax_se = r3_ln_ni$pars[[4]],
+          jmax = r3_ln_ni$pars[[2]],
+          jmax_se = r3_ln_ni$pars[[5]])
+
+
+## r3_ln_yi
+r3_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r3_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE, citransition = 300)
+plot(r3_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r3_ln_yi", 
+          vcmax = r3_ln_yi$pars[[1]],
+          vcmax_se = r3_ln_yi$pars[[4]],
+          jmax = r3_ln_yi$pars[[2]],
+          jmax_se = r3_ln_yi$pars[[5]])
+
+## r2_hn_yi
+r3_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r3_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE, citransition = 200)
+plot(r3_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r3_hn_yi", 
+          vcmax = r3_hn_yi$pars[[1]],
+          vcmax_se = r3_hn_yi$pars[[4]],
+          jmax = r3_hn_yi$pars[[2]],
+          jmax_se = r3_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 4 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r4_hn_ni
+r4_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r4_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE, citransition = 300)
+plot(r4_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r4_hn_ni", 
+          vcmax = r4_hn_ni$pars[[1]],
+          vcmax_se = r4_hn_ni$pars[[4]],
+          jmax = r4_hn_ni$pars[[2]],
+          jmax_se = r4_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r4_ln_ni
+r4_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r4_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r4_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r4_ln_ni", 
+          vcmax = r4_ln_ni$pars[[1]],
+          vcmax_se = r4_ln_ni$pars[[4]],
+          jmax = r4_ln_ni$pars[[2]],
+          jmax_se = r4_ln_ni$pars[[5]])
+
+## r4_ln_yi
+r4_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r4_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r4_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r4_ln_yi", 
+          vcmax = r4_ln_yi$pars[[1]],
+          vcmax_se = r4_ln_yi$pars[[4]],
+          jmax = r4_ln_yi$pars[[2]],
+          jmax_se = r4_ln_yi$pars[[5]])
+
+## r4_hn_yi
+r4_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r4_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r4_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r4_hn_yi", 
+          vcmax = r4_hn_yi$pars[[1]],
+          vcmax_se = r4_hn_yi$pars[[4]],
+          jmax = r4_hn_yi$pars[[2]],
+          jmax_se = r4_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 5 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r5_hn_ni
+r5_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r5_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r5_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r5_hn_ni", 
+          vcmax = r5_hn_ni$pars[[1]],
+          vcmax_se = r5_hn_ni$pars[[4]],
+          jmax = r5_hn_ni$pars[[2]],
+          jmax_se = r5_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r5_ln_ni
+r5_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r5_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r5_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r5_ln_ni", 
+          vcmax = r5_ln_ni$pars[[1]],
+          vcmax_se = r5_ln_ni$pars[[4]],
+          jmax = r5_ln_ni$pars[[2]],
+          jmax_se = r5_ln_ni$pars[[5]])
+
+## r5_ln_yi
+r5_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r5_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r5_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r5_ln_yi", 
+          vcmax = r5_ln_yi$pars[[1]],
+          vcmax_se = r5_ln_yi$pars[[4]],
+          jmax = r5_ln_yi$pars[[2]],
+          jmax_se = r5_ln_yi$pars[[5]])
+
+## r5_hn_yi
+r5_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r5_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r5_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r5_hn_yi", 
+          vcmax = r5_hn_yi$pars[[1]],
+          vcmax_se = r5_hn_yi$pars[[4]],
+          jmax = r5_hn_yi$pars[[2]],
+          jmax_se = r5_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 6 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r6_hn_ni
+r6_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r6_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r6_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r6_hn_ni", 
+          vcmax = r6_hn_ni$pars[[1]],
+          vcmax_se = r6_hn_ni$pars[[4]],
+          jmax = r6_hn_ni$pars[[2]],
+          jmax_se = r6_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r6_ln_ni
+r6_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r6_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r6_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r6_ln_ni", 
+          vcmax = r6_ln_ni$pars[[1]],
+          vcmax_se = r6_ln_ni$pars[[4]],
+          jmax = r6_ln_ni$pars[[2]],
+          jmax_se = r6_ln_ni$pars[[5]])
+
+## r6_ln_yi
+r6_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r6_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r6_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r6_ln_yi", 
+          vcmax = r6_ln_yi$pars[[1]],
+          vcmax_se = r6_ln_yi$pars[[4]],
+          jmax = r6_ln_yi$pars[[2]],
+          jmax_se = r6_ln_yi$pars[[5]])
+
+## r6_hn_yi
+r6_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r6_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r6_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r6_hn_yi", 
+          vcmax = r6_hn_yi$pars[[1]],
+          vcmax_se = r6_hn_yi$pars[[4]],
+          jmax = r6_hn_yi$pars[[2]],
+          jmax_se = r6_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 7 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r7_hn_ni
+r7_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r7_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r7_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r7_hn_ni", 
+          vcmax = r7_hn_ni$pars[[1]],
+          vcmax_se = r7_hn_ni$pars[[4]],
+          jmax = r7_hn_ni$pars[[2]],
+          jmax_se = r7_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r7_ln_ni
+r7_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r7_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r7_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r7_ln_ni", 
+          vcmax = r7_ln_ni$pars[[1]],
+          vcmax_se = r7_ln_ni$pars[[4]],
+          jmax = r7_ln_ni$pars[[2]],
+          jmax_se = r7_ln_ni$pars[[5]])
+
+## r7_ln_yi
+r7_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r7_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r7_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r7_ln_yi", 
+          vcmax = r7_ln_yi$pars[[1]],
+          vcmax_se = r7_ln_yi$pars[[4]],
+          jmax = r7_ln_yi$pars[[2]],
+          jmax_se = r7_ln_yi$pars[[5]])
+
+## r7_hn_yi
+r7_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r7_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r7_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r7_hn_yi", 
+          vcmax = r7_hn_yi$pars[[1]],
+          vcmax_se = r7_hn_yi$pars[[4]],
+          jmax = r7_hn_yi$pars[[2]],
+          jmax_se = r7_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 8 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r8_hn_ni
+r8_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r8_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r8_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r8_hn_ni", 
+          vcmax = r8_hn_ni$pars[[1]],
+          vcmax_se = r8_hn_ni$pars[[4]],
+          jmax = r8_hn_ni$pars[[2]],
+          jmax_se = r8_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r6_ln_ni
+r8_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r8_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r8_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r8_ln_ni", 
+          vcmax = r8_ln_ni$pars[[1]],
+          vcmax_se = r8_ln_ni$pars[[4]],
+          jmax = r8_ln_ni$pars[[2]],
+          jmax_se = r8_ln_ni$pars[[5]])
+
+## r8_ln_yi
+r8_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r8_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r8_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r8_ln_yi", 
+          vcmax = r8_ln_yi$pars[[1]],
+          vcmax_se = r8_ln_yi$pars[[4]],
+          jmax = r8_ln_yi$pars[[2]],
+          jmax_se = r8_ln_yi$pars[[5]])
+
+## r8_hn_yi
+r8_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r8_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r8_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r8_hn_yi", 
+          vcmax = r8_hn_yi$pars[[1]],
+          vcmax_se = r8_hn_yi$pars[[4]],
+          jmax = r8_hn_yi$pars[[2]],
+          jmax_se = r8_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 9 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r9_hn_ni
+r9_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r9_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r9_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r9_hn_ni", 
+          vcmax = r9_hn_ni$pars[[1]],
+          vcmax_se = r9_hn_ni$pars[[4]],
+          jmax = r9_hn_ni$pars[[2]],
+          jmax_se = r9_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r9_ln_ni
+r9_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r9_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r9_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r9_ln_ni", 
+          vcmax = r9_ln_ni$pars[[1]],
+          vcmax_se = r9_ln_ni$pars[[4]],
+          jmax = r9_ln_ni$pars[[2]],
+          jmax_se = r9_ln_ni$pars[[5]])
+
+## r9_ln_yi
+r9_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r9_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r9_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r9_ln_yi", 
+          vcmax = r9_ln_yi$pars[[1]],
+          vcmax_se = r9_ln_yi$pars[[4]],
+          jmax = r9_ln_yi$pars[[2]],
+          jmax_se = r9_ln_yi$pars[[5]])
+
+## r9_hn_yi
+r9_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r9_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r9_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r9_hn_yi", 
+          vcmax = r9_hn_yi$pars[[1]],
+          vcmax_se = r9_hn_yi$pars[[4]],
+          jmax = r9_hn_yi$pars[[2]],
+          jmax_se = r9_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 10 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r10_hn_ni
+r10_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r10_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r10_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r10_hn_ni", 
+          vcmax = r10_hn_ni$pars[[1]],
+          vcmax_se = r10_hn_ni$pars[[4]],
+          jmax = r10_hn_ni$pars[[2]],
+          jmax_se = r10_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r10_ln_ni
+r10_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r10_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r10_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r10_ln_ni", 
+          vcmax = r10_ln_ni$pars[[1]],
+          vcmax_se = r10_ln_ni$pars[[4]],
+          jmax = r10_ln_ni$pars[[2]],
+          jmax_se = r10_ln_ni$pars[[5]])
+
+## r10_ln_yi
+r10_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r10_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r10_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r10_ln_yi", 
+          vcmax = r10_ln_yi$pars[[1]],
+          vcmax_se = r10_ln_yi$pars[[4]],
+          jmax = r10_ln_yi$pars[[2]],
+          jmax_se = r10_ln_yi$pars[[5]])
+
+## r10_hn_yi
+r10_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r10_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r10_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r10_hn_yi", 
+          vcmax = r10_hn_yi$pars[[1]],
+          vcmax_se = r10_hn_yi$pars[[4]],
+          jmax = r10_hn_yi$pars[[2]],
+          jmax_se = r10_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 11 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r11_hn_ni
+r11_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r11_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r11_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r11_hn_ni", 
+          vcmax = r11_hn_ni$pars[[1]],
+          vcmax_se = r11_hn_ni$pars[[4]],
+          jmax = r11_hn_ni$pars[[2]],
+          jmax_se = r11_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r11_ln_ni
+r11_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r11_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r11_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r11_ln_ni", 
+          vcmax = r11_ln_ni$pars[[1]],
+          vcmax_se = r11_ln_ni$pars[[4]],
+          jmax = r11_ln_ni$pars[[2]],
+          jmax_se = r11_ln_ni$pars[[5]])
+
+## r11_ln_yi
+r11_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r11_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r11_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r11_ln_yi", 
+          vcmax = r11_ln_yi$pars[[1]],
+          vcmax_se = r11_ln_yi$pars[[4]],
+          jmax = r11_ln_yi$pars[[2]],
+          jmax_se = r11_ln_yi$pars[[5]])
+
+## r11_hn_yi
+r11_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r11_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r11_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r11_hn_yi", 
+          vcmax = r11_hn_yi$pars[[1]],
+          vcmax_se = r11_hn_yi$pars[[4]],
+          jmax = r11_hn_yi$pars[[2]],
+          jmax_se = r11_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 12 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r12_hn_ni
+r12_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r12_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r12_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r12_hn_ni", 
+          vcmax = r12_hn_ni$pars[[1]],
+          vcmax_se = r12_hn_ni$pars[[4]],
+          jmax = r12_hn_ni$pars[[2]],
+          jmax_se = r12_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r12_ln_ni
+r12_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r12_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r12_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r12_ln_ni", 
+          vcmax = r12_ln_ni$pars[[1]],
+          vcmax_se = r12_ln_ni$pars[[4]],
+          jmax = r12_ln_ni$pars[[2]],
+          jmax_se = r12_ln_ni$pars[[5]])
+
+## r12_ln_yi
+r12_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r12_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r12_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r12_ln_yi", 
+          vcmax = r12_ln_yi$pars[[1]],
+          vcmax_se = r12_ln_yi$pars[[4]],
+          jmax = r12_ln_yi$pars[[2]],
+          jmax_se = r12_ln_yi$pars[[5]])
+
+## r12_hn_yi
+r12_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r12_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r12_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r12_hn_yi", 
+          vcmax = r12_hn_yi$pars[[1]],
+          vcmax_se = r12_hn_yi$pars[[4]],
+          jmax = r12_hn_yi$pars[[2]],
+          jmax_se = r12_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 13 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r13_hn_ni
+r13_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r13_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r13_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r13_hn_ni", 
+          vcmax = r13_hn_ni$pars[[1]],
+          vcmax_se = r13_hn_ni$pars[[4]],
+          jmax = r13_hn_ni$pars[[2]],
+          jmax_se = r13_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r13_ln_ni
+r13_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r13_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r13_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r13_ln_ni", 
+          vcmax = r13_ln_ni$pars[[1]],
+          vcmax_se = r13_ln_ni$pars[[4]],
+          jmax = r13_ln_ni$pars[[2]],
+          jmax_se = r13_ln_ni$pars[[5]])
+
+## r13_ln_yi
+r13_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r13_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r13_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r13_ln_yi", 
+          vcmax = r13_ln_yi$pars[[1]],
+          vcmax_se = r13_ln_yi$pars[[4]],
+          jmax = r13_ln_yi$pars[[2]],
+          jmax_se = r13_ln_yi$pars[[5]])
+
+## r13_hn_yi
+r13_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r13_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r13_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r13_hn_yi", 
+          vcmax = r13_hn_yi$pars[[1]],
+          vcmax_se = r13_hn_yi$pars[[4]],
+          jmax = r13_hn_yi$pars[[2]],
+          jmax_se = r13_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 14 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r14_hn_ni
+r14_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r14_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r14_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r14_hn_ni", 
+          vcmax = r14_hn_ni$pars[[1]],
+          vcmax_se = r14_hn_ni$pars[[4]],
+          jmax = r14_hn_ni$pars[[2]],
+          jmax_se = r14_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r14_ln_ni
+r14_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r14_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r14_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r14_ln_ni", 
+          vcmax = r14_ln_ni$pars[[1]],
+          vcmax_se = r14_ln_ni$pars[[4]],
+          jmax = r14_ln_ni$pars[[2]],
+          jmax_se = r14_ln_ni$pars[[5]])
+
+## r14_ln_yi
+r14_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r14_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r14_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r14_ln_yi", 
+          vcmax = r14_ln_yi$pars[[1]],
+          vcmax_se = r14_ln_yi$pars[[4]],
+          jmax = r14_ln_yi$pars[[2]],
+          jmax_se = r14_ln_yi$pars[[5]])
+
+## r14_hn_yi
+r14_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r14_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r14_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r14_hn_yi", 
+          vcmax = r14_hn_yi$pars[[1]],
+          vcmax_se = r14_hn_yi$pars[[4]],
+          jmax = r14_hn_yi$pars[[2]],
+          jmax_se = r14_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 15 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r15_hn_ni
+r15_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r15_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r15_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
-  fitaci(varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+photo.params <- photo.params %>%
+  add_row(id = "r15_hn_ni", 
+          vcmax = r15_hn_ni$pars[[1]],
+          vcmax_se = r15_hn_ni$pars[[4]],
+          jmax = r15_hn_ni$pars[[2]],
+          jmax_se = r15_hn_ni$pars[[5]])
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r15_ln_ni
+r15_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r15_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r15_ln_ni)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r15_ln_ni", 
+          vcmax = r15_ln_ni$pars[[1]],
+          vcmax_se = r15_ln_ni$pars[[4]],
+          jmax = r15_ln_ni$pars[[2]],
+          jmax_se = r15_ln_ni$pars[[5]])
+
+## r15_ln_yi
+r15_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r15_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r15_ln_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r15_ln_yi", 
+          vcmax = r15_ln_yi$pars[[1]],
+          vcmax_se = r15_ln_yi$pars[[4]],
+          jmax = r15_ln_yi$pars[[2]],
+          jmax_se = r15_ln_yi$pars[[5]])
+
+## r15_hn_yi
+r15_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r15_hn_yi") %>%
+  fitaci(varnames = list(ALEAF = "A",
+                         Tleaf = "TleafEB",
+                         Ci = "Ci",
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r15_hn_yi)
+
+photo.params <- photo.params %>%
+  add_row(id = "r15_hn_yi", 
+          vcmax = r15_hn_yi$pars[[1]],
+          vcmax_se = r15_hn_yi$pars[[4]],
+          jmax = r15_hn_yi$pars[[2]],
+          jmax_se = r15_hn_yi$pars[[5]])
 
 #####################################################################
 # Rep 16 cluster
 #####################################################################
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+## r16_hn_ni
+r16_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r16_hn_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 275,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r16_hn_ni)
 
-r2_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_ln_ni") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r16_hn_ni", 
+          vcmax = r16_hn_ni$pars[[1]],
+          vcmax_se = r16_hn_ni$pars[[4]],
+          jmax = r16_hn_ni$pars[[2]],
+          jmax_se = r16_hn_ni$pars[[5]])
+
+## r16_ln_ni
+r16_ln_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r16_ln_ni") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 300,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_ln_ni)
-r2_ln_ni
-coef(r2_ln_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r16_ln_ni)
 
-r2_hn_ni <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_ni") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r16_ln_ni", 
+          vcmax = r16_ln_ni$pars[[1]],
+          vcmax_se = r16_ln_ni$pars[[4]],
+          jmax = r16_ln_ni$pars[[2]],
+          jmax_se = r16_ln_ni$pars[[5]])
+
+## r16_ln_yi
+r16_ln_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r16_ln_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_ni)
-r2_hn_ni
-coef(r2_hn_ni)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r16_ln_yi)
 
-r2_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r2_hn_yi") %>%
+photo.params <- photo.params %>%
+  add_row(id = "r16_ln_yi", 
+          vcmax = r16_ln_yi$pars[[1]],
+          vcmax_se = r16_ln_yi$pars[[4]],
+          jmax = r16_ln_yi$pars[[2]],
+          jmax_se = r16_ln_yi$pars[[5]])
+
+## r16_hn_yi
+r16_hn_yi <- aci.merged %>% filter(keep.row == "yes" & id == "r16_hn_yi") %>%
   fitaci(varnames = list(ALEAF = "A",
                          Tleaf = "TleafEB",
                          Ci = "Ci",
-                         PPFD = "Qin"),
-         citransition = 250,
-         fitTPU = TRUE,
-         Tcorrect = FALSE)
-plot(r2_hn_yi)
-r2_hn_yi
-coef(r2_hn_yi)
+                         PPFD = "Qin", Rd = "rd.curvefit"),
+         fitTPU = FALSE, Tcorrect = FALSE)
+plot(r16_hn_yi)
 
-## Extract coefficients and separate id into rep, n.trt, and inoc.
-## Also, merge r4_hn_ni coefficients. Add leaf temp for standardizing
-## Vcmax and Jmax to 25 deg C
-aci.coef <- aci.tpu %>%
-  coef() %>%
-  dplyr::select(id,
-                vcmax = Vcmax,
-                jmax = Jmax) %>%
+photo.params <- photo.params %>%
+  add_row(id = "r16_hn_yi", 
+          vcmax = r16_hn_yi$pars[[1]],
+          vcmax_se = r16_hn_yi$pars[[4]],
+          jmax = r16_hn_yi$pars[[2]],
+          jmax_se = r16_hn_yi$pars[[5]])
+
+#####################################################################
+## Extract coefficients and separate id into rep, n.trt, and inoc. 
+## Also formate rep number and add block number
+#####################################################################
+aci.coef <- photo.params %>%
   separate(col = "id",
-         sep = "(_*)[_]_*",
-         into = c("rep", "n.trt", "inoc"),
-         remove = FALSE) %>%
+           sep = "(_*)[_]_*",
+           into = c("rep", "n.trt", "inoc"),
+           remove = FALSE) %>%
   mutate(rep = gsub("r", "", rep),
          rep = str_pad(rep, width = 2, side = "left", pad = "0")) %>%
   arrange(rep) %>%
-  mutate(block = rep(1:4, each = 16)) %>%
-  full_join(aci.temp) %>%
-  full_join(resp.merged) %>%
-  full_join(a.gs) %>%
-  full_join(leaf.traits) %>%
-  data.frame()
+  mutate(block = rep(1:4, each = 16)) 
 
-## Create data frame with id and machine, join with aci.coef file
-aci.coef <- aci.merged %>%
-  group_by(id) %>%
-  summarize(machine = unique(machine)) %>%
-  left_join(aci.coef) %>%
-  data.frame()
-
-## Check aci.coef data frame. Should have id, n.trt, inoc, machine, 
-## model coefficients, and block as designated columns
-head(aci.coef)
 
 #####################################################################
 # Import HOBO data, determine mean temp over experiment. Will be added
@@ -1093,10 +1340,49 @@ aci.coef <- df.tgrow %>%
   right_join(aci.coef, by = "block")
 
 #####################################################################
+# Extract A400, Ci:Ca, gsw values from each ID
+#####################################################################
+a.gs <- aci.merged %>%
+  filter(keep.row == "yes") %>%
+  group_by(id) %>%
+  filter(CO2_r > 350 & CO2_r < 425) %>%
+  filter(row_number() == 1) %>%
+  dplyr::select(id, rep, n.trt, inoc, machine, A, Ci, Ca, gsw) %>%
+  mutate(iwue = A / gsw,
+         ci.ca = Ci / Ca,
+         n.trt = tolower(n.trt),
+         inoc = tolower(inoc)) %>%
+  data.frame()
+a.gs
+
+#####################################################################
+# Merge respiration data, A/Ci coefficiencts, net photosynthesis
+# data files to leaf.traits data frame
+#####################################################################
+aci.coef <- aci.coef %>%
+  full_join(resp.merged) %>%
+  full_join(a.gs) %>%
+  full_join(leaf.traits) %>%
+  data.frame()
+
+
+#####################################################################
+# Add machine to aci.coef file
+#####################################################################
+aci.coef <- aci.merged %>%
+  group_by(id) %>%
+  summarize(leaf.temp = mean(TleafEB, na.rm = TRUE),
+            machine = unique(machine)) %>%
+  left_join(aci.coef) %>%
+  data.frame()
+
+## Check aci.coef data frame. Should have id, n.trt, inoc, machine, 
+## model coefficients, and block as designated columns
+head(aci.coef)
+
+#####################################################################
 # Standardize Vcmax and Jmax to 25 deg C
 #####################################################################
-## NOTE: tGrow is set to 30 arbitrarily, will be replaced by mean temp
-## with HOBO data once experiment is taken down
 aci.coef <- aci.coef %>%
   group_by(id) %>%
   mutate(vcmax25 = temp_standardize(estimate = vcmax,
@@ -1118,7 +1404,7 @@ aci.coef <- aci.coef %>%
                 jmax, jmax25, rd, rd25, rd25.vcmax25, jmax25.vcmax25, gsw, 
                 ci.ca, pnue, iwue, vcmax.gs, narea.gs, sla, focal.area, 
                 focal.biomass, leaf.n, leaf.cn, narea, everything(), 
-                -leaf.temp, -tleaf) %>%
+                -leaf.temp, -tleaf, -vcmax_se, -jmax_se) %>%
   dplyr::rename_all(tolower) %>%
   data.frame()
 
