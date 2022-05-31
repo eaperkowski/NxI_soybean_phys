@@ -126,7 +126,7 @@ sla.pairwise <- sla.pairwise.full %>%
 ##########################################################################
 ## Narea
 ##########################################################################
-data$narea[39] <- NA
+data$narea[11] <- NA
 
 narea <- lmer(narea ~ n.trt * inoc + (1 | block), data = data)
 
@@ -302,9 +302,9 @@ jmax.pairwise <- jmax.pairwise.full %>%
 ##########################################################################
 ## Jmax25:Vcmax25
 ##########################################################################
-data$jmax25.vcmax25[c(46, 49)] <- NA
+data$jmax25.vcmax25[c(17, 62)] <- NA
 
-jmax25.vcmax25 <- lmer(log(jmax25.vcmax25) ~ n.trt * inoc + (1 | block),
+jmax25.vcmax25 <- lmer(jmax25.vcmax25 ~ n.trt * inoc + (1 | block),
                        data = data)
 
 
@@ -347,14 +347,13 @@ jmax.vcmax.pairwise.inoc <- data.frame(variable = "jmax25.vcmax25",
 jmax.vcmax.pairwise <- jmax.vcmax.pairwise.full %>%
   full_join(jmax.vcmax.pairwise.soiln) %>%
   full_join(jmax.vcmax.pairwise.inoc) %>%
-  dplyr::rename(emmean = response) %>%
   mutate(.group = trimws(.group, "both"),
          compact = c("b", "ab", "a", "a", "b", "a", "a", "a"))
 
 ##########################################################################
 ## Rd (standardized to 25 deg C)
 ##########################################################################
-data$rd25[c(35, 63)] <- NA
+data$rd25[c(7, 31)] <- NA
 
 rd <- lmer(log(rd25) ~ n.trt * inoc + (1 | block), data = data)
 
@@ -404,9 +403,9 @@ rd.pairwise <- rd.pairwise.full %>%
 ##########################################################################
 ## Rd:Vcmax (Vcmax is not standardized since Rd is not temp standardized)
 ##########################################################################
-data$rd25.vcmax25[c(19, 35)] <- NA
+data$rd25.vcmax25[c(7, 31)] <- NA
 
-rd.vcmax <- lmer(log(rd25.vcmax25) ~ n.trt * inoc + (1 | block), data = data)
+rd.vcmax <- lmer(rd25.vcmax25 ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(rd.vcmax)
@@ -450,6 +449,8 @@ rd.vcmax.pairwise <- rd.vcmax.pairwise.full %>%
 ##########################################################################
 ## Gs
 ##########################################################################
+data$gsw[64] <- NA
+
 gs <- lmer(gsw ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
@@ -491,8 +492,6 @@ gs.pairwise <- gs.pairwise.full %>%
 ##########################################################################
 ## Ci:Ca
 ##########################################################################
-data$ci.ca[c(23, 59)] <- NA
-
 cica <- lmer(ci.ca ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
@@ -534,7 +533,7 @@ cica.pairwise <- cica.pairwise.full %>%
 ##########################################################################
 ## PNUE
 ##########################################################################
-data$pnue[39] <- NA
+data$pnue[11] <- NA
 
 pnue <- lmer(pnue ~ n.trt * inoc + (1 | block), data = data)
 
@@ -552,11 +551,8 @@ Anova(pnue)
 r.squaredGLMM(pnue)
 
 # Pairwise comparisons
-cld(emmeans(pnue, pairwise~n.trt*inoc))
+emmeans(pnue, pairwise~n.trt*inoc)
 emmeans(pnue, pairwise~n.trt)
-## Interaction indicated a marginal negative effect of inoculation status
-## on PNUE under low N fertilization, but no effect of inoculation status under
-## high N fertilization. N fertilization generally reduced PNUE
 
 # Emmean for fig making
 pnue.pairwise.full <- data.frame(variable = "pnue",
@@ -583,7 +579,7 @@ pnue.pairwise <- pnue.pairwise.full %>%
 ##########################################################################
 ## iWUE
 ##########################################################################
-iwue <- lmer(log(iwue) ~ n.trt * inoc + (1 | block), data = data)
+iwue <- lmer(iwue ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(iwue)
@@ -621,16 +617,13 @@ iwue.pairwise.inoc <- data.frame(variable = "iwue",
 iwue.pairwise <- iwue.pairwise.full %>%
   full_join(iwue.pairwise.soiln) %>%
   full_join(iwue.pairwise.inoc) %>%
-  dplyr::rename(emmean = response) %>%
   mutate(.group = trimws(.group, "both"),
          compact = .group)
 
 ##########################################################################
 ## Vcmax:gs
 ##########################################################################
-data$vcmax.gs[c(23, 49, 54, 59)] <- NA
-
-vcmax.gs <- lmer(vcmax.gs ~ n.trt * inoc + (1 | block), data = data)
+vcmax.gs <- lmer(log(vcmax.gs) ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(vcmax.gs)
@@ -647,8 +640,6 @@ r.squaredGLMM(vcmax.gs)
 
 # Pairwise comparisons
 emmeans(vcmax.gs, pairwise~n.trt)
-# Increasing nitrogen increases Vcmax:gs through a relatively
-# larger decrease in gs than Vcmax25
 
 # Emmean for fig making
 vcmax.gs.pairwise.full <- data.frame(variable = "vcmax.gs",
@@ -676,11 +667,7 @@ vcmax.gs.pairwise <- vcmax.gs.pairwise.full %>%
 ##########################################################################
 ## Narea:gs
 ##########################################################################
-data$narea.gs[39] <- NA
-
-data$narea
-
-narea.gs <- lmer(log(narea.gs) ~ n.trt * inoc + (1 | block), data = data)
+narea.gs <- lmer(narea.gs ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(narea.gs)
@@ -719,7 +706,6 @@ narea.gs.pairwise.inoc <- data.frame(variable = "narea.gs",
 narea.gs.pairwise <- narea.gs.pairwise.full %>%
   full_join(narea.gs.pairwise.soiln) %>%
   full_join(narea.gs.pairwise.inoc) %>%
-  dplyr::rename(emmean = response) %>%
   mutate(.group = trimws(.group, "both"),
          compact = .group)
 
