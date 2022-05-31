@@ -215,8 +215,7 @@ aci.merged <- df.aci %>%
          rep = str_pad(rep, width = 2, side = "left", pad = "0"),
          keep.row = ifelse(lag(CO2_r > 1501, n = 1L),"no","yes"),
          keep.row = tidyr::replace_na(keep.row, "yes")) %>%
-  data.frame() %>%
-  select(-tleaf)
+  data.frame()
 aci.merged
 
 ## Remove rows based on A/Ci fits, and also include all points measured
@@ -1343,7 +1342,6 @@ aci.coef <- df.tgrow %>%
 # Extract A400, Ci:Ca, gsw values from each ID
 #####################################################################
 a.gs <- aci.merged %>%
-  filter(keep.row == "yes") %>%
   group_by(id) %>%
   filter(CO2_r > 350 & CO2_r < 425) %>%
   filter(row_number() == 1) %>%
