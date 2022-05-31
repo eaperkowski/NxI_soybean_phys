@@ -3,7 +3,6 @@ library(tidyverse)
 library(dplyr)
 library(ggpubr)
 library(patchwork)
-library(gghalves)
 
 ## Central figure theme
 pubtheme <- theme_bw() +
@@ -38,13 +37,13 @@ comp.letters <- read.csv("../data/2021NxI_compact_letters.csv",
 cbbPalette <- c("#DDAA33", "#BB5566", "#004488", "#BBBBBB")
 
 # Remove outliers from Bonferroni tests
-data$narea[39] <- NA
-data$jmax25.vcmax25[c(46, 49)] <- NA
-data$rd25[c(35, 63)] <- NA
-data$rd25.vcmax25[c(35)] <- NA
-data$ci.ca[c(23, 59)] <- NA
-data$pnue[39] <- NA
-data$narea.gs[39] <- NA
+data$narea[11] <- NA
+data$jmax25.vcmax25[c(17, 62)] <- NA
+data$rd25[c(7, 31)] <- NA
+data$rd25.vcmax25[c(7, 31)] <- NA
+data$gsw[64] <- NA
+data$pnue[11] <- NA
+
 
 ##########################################################################
 ## Nmass
