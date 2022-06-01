@@ -10,9 +10,11 @@ library(plantecophys)
 library(tidyverse)
 
 #####################################################################
-# Load temp standardization function for Vcmax/Jmax
+# Load temp standardization function for Vcmax/Jmax and leaf demand
+# function from Dong et al. (2022)
 #####################################################################
 source("/Users/eaperkowski/git/r_functions/temp_standardize.R")
+source("/Users/eaperkowski/git/r_functions/leafDemand.R")
 
 #####################################################################
 # Load and clean biomass, CN, fluorescence data
@@ -1393,11 +1395,15 @@ aci.coef <- aci.coef %>%
                                    standard.to = 25,
                                    tLeaf = leaf.temp,
                                    tGrow = tGrow),
-         rd25.vcmax25 = rd25 / vcmax25, # Rd is temp standardized, so using Vcmax25
+         rd25.vcmax25 = rd25 / vcmax25,
          jmax25.vcmax25 = jmax25 / vcmax25,
          vcmax.gs = vcmax / gsw,
          narea.gs = narea / gsw,
-         pnue = A / narea) %>% # gs is not temp standardized, so using Vcmax
+         pnue = A / narea,
+         n.rubisco = nDemand(vcmax25, jmax25, 1/sla)[[1]],
+         n.bioenerg = nDemand(vcmax25, jmax25, 1/sla)[[2]],
+         n.struct = nDemand(vcmax25, jmax25, 1/sla)[[3]],
+         can.dem = nDemand(vcmax25, jmax25, 1/sla, total.leaf.area)[[5]]) %>%
   dplyr::select(id, rep, n.trt, inoc, block, machine, anet = A, vcmax, vcmax25, 
                 jmax, jmax25, rd, rd25, rd25.vcmax25, jmax25.vcmax25, gsw, 
                 ci.ca, pnue, iwue, vcmax.gs, narea.gs, sla, focal.area, 
@@ -1405,8 +1411,6 @@ aci.coef <- aci.coef %>%
                 -leaf.temp, -tleaf, -vcmax_se, -jmax_se) %>%
   dplyr::rename_all(tolower) %>%
   data.frame()
-
-head(aci.coef)
 
 ## Write .csv file for leaf trait data
 write.csv(aci.coef, "../data/2021NxI_trait_data.csv", row.names = FALSE)

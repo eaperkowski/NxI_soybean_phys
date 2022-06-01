@@ -6,9 +6,6 @@ library(tidyverse)
 library(dplyr)
 library(MuMIn)
 library(multcomp)
-library(rcompanion)
-library(report)
-
 
 ## Remove digit bounds in emmeans package
 emm_options(opt.digits = FALSE)
@@ -26,6 +23,7 @@ data$nod.root.biomass <- data$nodule.biomass / data$root.biomass
 
 ## Check data
 head(data)
+
 
 ##########################################################################
 ## Nmass
@@ -47,13 +45,7 @@ r.squaredGLMM(nmass)
 
 # Pairwise comparisons
 emmeans(nmass, pairwise ~ n.trt)
-
-cld(emmeans(nmass, pairwise ~ n.trt * inoc))
-## Increasing soil nitrogen availability generally increases Nmass. The 
-## positive effect of inoculation status on Nmass was only observed at 
-## low nitrogen. There was no effect of inoculation status under high nitrogen
-## (Aside: perhaps because nodulation decreased to the point where plants
-## were acquiring nitrogen via direct uptake?)
+emmeans(nmass, pairwise ~ n.trt * inoc)
 
 # Emmean for fig making
 nmass.pairwise.full <- data.frame(variable = "nmass",
@@ -96,11 +88,7 @@ r.squaredGLMM(sla)
 
 # Pairwise comparisons
 emmeans(sla, pairwise~inoc)
-## Inoculated individuals generally have larger SLA than non-inoculated
-## individuals
-
 emmeans(sla, pairwise~n.trt)
-## Increasing soil nitrogen has a marginally positive effect on SLA
 
 # Emmean for fig making
 sla.pairwise.full <- data.frame(variable = "sla",
@@ -146,12 +134,6 @@ r.squaredGLMM(narea)
 # Pairwise comparisons
 emmeans(narea, pairwise ~ n.trt * inoc)
 emmeans(narea, pairwise~n.trt)
-
-## Increasing soil nitrogen availability generally increases Narea. The 
-## positive effect of inoculation status on Narea was only observed at 
-## low nitrogen. There was no effect of inoculation status under high nitrogen
-## (Aside: perhaps because nodulation decreased to the point where plants
-## were acquiring nitrogen via direct uptake?)
 
 # Emmean for fig making
 narea.pairwise.full <- data.frame(variable = "narea",
@@ -277,7 +259,7 @@ Anova(jmax25)
 r.squaredGLMM(jmax25)
 
 # Pairwise comparisons
-emmeans(jmax25, pairwise~n.trt) # Nitrogen addition decreases Jmax25?
+emmeans(jmax25, pairwise~n.trt)
 emmeans(jmax25, pairwise~inoc)
 
 # Emmean output for fig making
@@ -371,11 +353,8 @@ Anova(rd)
 r.squaredGLMM(rd)
 
 # Pairwise comparisons
-emmeans(rd, pairwise~n.trt) 
-# Nitrogen addition increases dark respiration
-cld(emmeans(rd, pairwise~n.trt*inoc, type = "response"))
-# Low nitrogen, no inoculation has marginally lower Rd than high nitrogen,
-# yes inoculation
+emmeans(rd, pairwise~n.trt, type = "response") 
+emmeans(rd, pairwise~n.trt*inoc, type = "response")
 
 # Emmean for fig making
 rd.pairwise.full <- data.frame(variable = "rd25",
@@ -421,7 +400,7 @@ Anova(rd.vcmax)
 r.squaredGLMM(rd.vcmax)
 
 # Pairwise comparisons
-emmeans(rd.vcmax, pairwise~n.trt, type = "response")
+emmeans(rd.vcmax, pairwise~n.trt)
 # High nitrogen increases Rd:Vcmax regardless of inoculation status
 # Driven by both an increase in Rd and reduction in Vcmax with increasing soil N
 emmeans(rd.vcmax, pairwise~n.trt*inoc)
@@ -683,7 +662,7 @@ Anova(narea.gs)
 r.squaredGLMM(narea.gs)
 
 # Pairwise comparisons
-emmeans(narea.gs, pairwise~n.trt, type = "response")
+emmeans(narea.gs, pairwise~n.trt)
 # Increasing nitrogen increases Narea:gs through and increase in Narea and
 # decrease in gs
 
