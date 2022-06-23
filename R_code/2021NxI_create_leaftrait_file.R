@@ -1383,7 +1383,7 @@ head(aci.coef)
 #####################################################################
 # Standardize Vcmax and Jmax to 25 deg C
 #####################################################################
-test <- aci.coef %>%
+aci.coef <- aci.coef %>%
   group_by(id) %>%
   dplyr::rename(Tleaf = leaf.temp) %>%
   mutate(vcmax25 = temp_standardize(estimate = vcmax,
