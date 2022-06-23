@@ -1383,32 +1383,29 @@ head(aci.coef)
 #####################################################################
 # Standardize Vcmax and Jmax to 25 deg C
 #####################################################################
-aci.coef <- aci.coef %>%
+test <- aci.coef %>%
   group_by(id) %>%
+  dplyr::rename(Tleaf = leaf.temp) %>%
   mutate(vcmax25 = temp_standardize(estimate = vcmax,
                                     estimate.type = "Vcmax",
                                     standard.to = 25,
-                                    tLeaf = leaf.temp,
+                                    tLeaf = Tleaf,
                                     tGrow = tGrow),
          jmax25 = temp_standardize(estimate = jmax,
                                    estimate.type = "Jmax",
                                    standard.to = 25,
-                                   tLeaf = leaf.temp,
+                                   tLeaf = Tleaf,
                                    tGrow = tGrow),
          rd25.vcmax25 = rd25 / vcmax25,
          jmax25.vcmax25 = jmax25 / vcmax25,
          vcmax.gs = vcmax / gsw,
          narea.gs = narea / gsw,
-         pnue = A / narea,
-         n.rubisco = nDemand(vcmax25, jmax25, 1/sla)[[1]],
-         n.bioenerg = nDemand(vcmax25, jmax25, 1/sla)[[2]],
-         n.struct = nDemand(vcmax25, jmax25, 1/sla)[[3]],
-         can.dem = nDemand(vcmax25, jmax25, 1/sla, total.leaf.area)[[5]]) %>%
+         pnue = A / narea) %>%
   dplyr::select(id, rep, n.trt, inoc, block, machine, anet = A, vcmax, vcmax25, 
                 jmax, jmax25, rd, rd25, rd25.vcmax25, jmax25.vcmax25, gsw, 
                 ci.ca, pnue, iwue, vcmax.gs, narea.gs, sla, focal.area, 
-                focal.biomass, leaf.n, leaf.cn, narea, everything(), 
-                -leaf.temp, -tleaf, -vcmax_se, -jmax_se) %>%
+                focal.biomass, leaf.n, leaf.cn, narea, Tleaf,
+                everything(), -tleaf, -vcmax_se, -jmax_se) %>%
   dplyr::rename_all(tolower) %>%
   data.frame()
 
