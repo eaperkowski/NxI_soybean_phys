@@ -279,14 +279,14 @@ jmax.pairwise <- jmax.pairwise.full %>%
   full_join(jmax.pairwise.soiln) %>%
   full_join(jmax.pairwise.inoc) %>%
   mutate(.group = trimws(.group, "both"),
-         compact = c("b", "ab", "ab", "a", "b", "a", "a", "a"))
+         compact = c("a", "a", "a", "a", "b", "a", "a", "a"))
 
 ##########################################################################
 ## Jmax25:Vcmax25
 ##########################################################################
 data$jmax25.vcmax25[c(17, 62)] <- NA
 
-jmax25.vcmax25 <- lmer(jmax25.vcmax25 ~ n.trt * inoc + (1 | block),
+jmax25.vcmax25 <- lmer(log(jmax25.vcmax25) ~ n.trt * inoc + (1 | block),
                        data = data)
 
 
@@ -305,6 +305,7 @@ r.squaredGLMM(jmax25.vcmax25)
 
 # Pairwise comparisons
 emmeans(jmax25.vcmax25, pairwise~n.trt, type = "response")
+emmeans(jmax25.vcmax25, pairwise~inoc, type = "response")
 
 cld(emmeans(jmax25.vcmax25, pairwise~n.trt*inoc, type = "response")) 
 # High nitrogen decreases Jmax25:Vcmax25 when plants are not inoculated
@@ -330,7 +331,7 @@ jmax.vcmax.pairwise <- jmax.vcmax.pairwise.full %>%
   full_join(jmax.vcmax.pairwise.soiln) %>%
   full_join(jmax.vcmax.pairwise.inoc) %>%
   mutate(.group = trimws(.group, "both"),
-         compact = c("b", "ab", "a", "a", "b", "a", "a", "a"))
+         compact = c("a", "a", "a", "a", "a", "a", "a", "b"))
 
 ##########################################################################
 ## Rd (standardized to 25 deg C)
@@ -646,7 +647,9 @@ vcmax.gs.pairwise <- vcmax.gs.pairwise.full %>%
 ##########################################################################
 ## Narea:gs
 ##########################################################################
-narea.gs <- lmer(narea.gs ~ n.trt * inoc + (1 | block), data = data)
+data$narea.gs[11] <- NA
+
+narea.gs <- lmer(log(narea.gs) ~ n.trt * inoc + (1 | block), data = data)
 
 # Check model assumptions
 plot(narea.gs)
