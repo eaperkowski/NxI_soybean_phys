@@ -1063,7 +1063,7 @@ summary(bvr)
 Anova(bvr)
 
 # Pairwise comparisons
-emmeans(bvr, pairwise~n.trt)
+emmeans(bvr, pairwise~n.trt*inoc, type = "response")
 
 # Write data frame for compact lettering
 bvr.pairwise.full <- data.frame(variable = "bvr",

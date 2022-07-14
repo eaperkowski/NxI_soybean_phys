@@ -19,7 +19,6 @@ pubtheme <- theme_bw(base_size = 18) +
         panel.grid.minor.y = element_blank(),
         legend.text.align = 0)
 
-
 ## Load data and add treatment column
 data <- read.csv("../data/2021NxI_trait_data.csv", na.strings = "NA")
 data <- data %>%
@@ -32,7 +31,6 @@ data <- data %>%
 comp.letters <- read.csv("../data/2021NxI_compact_letters.csv",
                          na.strings = "<NA>")
 
-
 ## Add colorblind friendly palette
 cbbPalette <- c("#DDAA33", "#BB5566", "#004488", "#BBBBBB")
 
@@ -43,7 +41,6 @@ data$rd25[c(7, 31)] <- NA
 data$rd25.vcmax25[c(7, 31)] <- NA
 data$gsw[64] <- NA
 data$pnue[11] <- NA
-
 
 ##########################################################################
 ## Nmass
@@ -530,7 +527,7 @@ bvr.plot <- ggplot(data = data, aes(x = treatment,
   scale_x_discrete(labels = c("70", "70", "630", "630")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
-  labs(x = "Soil nitrogen fertilization",
+  labs(x = "Soil nitrogen fertilization (ppm twice per week)",
        y = expression(bold("Biomass: pot volume (g L"^"-1"~")")),
        fill = "Inoculation status") +
   pubtheme
@@ -582,7 +579,6 @@ ggarrange(pnue, iwue, narea.gs, vcmax.gs,
     hjust = 0.65))
 dev.off()
 
-
 ##########################################################################
 ## Figure 1: Structural carbon costs to acquire nitrogen
 ##########################################################################
@@ -599,7 +595,6 @@ ggarrange(ncost, ggarrange(bgc.plot, wpn.plot, ncol = 1, nrow = 2,
     size = 18, hjust = 0.6))
 dev.off()
 
-
 ##########################################################################
 ## Figure 2: Whole plant measures
 ##########################################################################
@@ -615,42 +610,12 @@ ggarrange(tla, tbio, nodroot.plot, ncol = 3,
       size = 18, hjust = 0.6))
 dev.off()
 
-
-
-fig5 <- tla + tbio +
-  plot_layout(ncol = 2, nrow = 1, guides = "collect") +
-  plot_annotation(tag_levels = "A") & 
-  theme(plot.tag = element_text(size = 20, face = "bold"))
-
-
-ggarrange(fig5) %>%
-  annotate_figure(bottom = text_grob(expression(
-    bold("Soil nitrogen fertilization")), size = 20)) %>%
-  ggexport(filename = "../docs/figs/2021NxI_soy_fig4_tla.png", 
-           width = 9000, height = 3000, res = 600)
-
-
-##########################################################################
-## Figure 6: Root nodulation
-##########################################################################
-fig6 <- nodroot.plot + (nod.plot / root.plot) + 
-  plot_layout(guides = "collect") +
-  plot_annotation(tag_levels = "A") & 
-  theme(plot.tag = element_text(size = 20, face = "bold"))
-
-
-
-ggarrange(fig6) %>%
-  annotate_figure(bottom = text_grob(label = "Soil nitrogen fertilization",
-                                     face = "bold", size = 20, hjust = 0.75)) %>%
-  ggexport(filename = "../docs/figs/2021NxI_soy_fig6_nodulation.png", 
-           width = 9000, height = 4000, res = 600)
-
 ##########################################################################
 ## Figure S1: BVR
 ##########################################################################
-ggarrange(bvr.plot, nrow = 1, ncol = 1, common.legend = TRUE, align = "hv", 
-          legend = "right", font.label = list(size = 18, face = "bold")) %>%
-  ggexport(filename = "../docs/figs/2021NxI_soy_figS1_bvr.png", 
-           width = 4000, height = 3000, res = 600)
+png("../docs/figs/2021NxI_soy_figS1_bvr.png",
+    width = 9, height = 6, units = 'in', res = 600)
+bvr.plot
+dev.off()
+
 
