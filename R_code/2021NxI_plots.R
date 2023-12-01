@@ -34,374 +34,22 @@ comp.letters <- read.csv("../data/2021NxI_compact_letters.csv",
 ## Add colorblind friendly palette
 cbbPalette <- c("#DDAA33", "#BB5566", "#004488", "#BBBBBB")
 
-# Remove outliers from Bonferroni tests
-data$narea[11] <- NA
-data$jmax25.vcmax25[c(17, 62)] <- NA
-data$rd25[c(7, 31)] <- NA
-data$rd25.vcmax25[c(7, 31)] <- NA
-data$gsw[64] <- NA
-data$pnue[11] <- NA
 
 ##########################################################################
-## Nmass
+## Carbon costs to acquire nitrogen
 ##########################################################################
-nmass <- ggplot(data = data, aes(x = treatment, y = leaf.n, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "nmass" & comparison == "full"),
-            aes(y = 8, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(2, 8.4), breaks = seq(2, 8, 2)) +
-  labs(x = NULL,
-       y = expression(bold("N"["mass"]~"(g g"^"-1"~")")),
-       fill = "Inoculation status") +
-  pubtheme +
-  theme(axis.text.x = element_blank())
-nmass
-
-
-##########################################################################
-## SLA
-##########################################################################
-sla <- ggplot(data = data, aes(x = treatment, y = sla, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, variable == "sla" & comparison == "full"),
-            aes(y = 750, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(450, 770), breaks = seq(450, 750, 100)) +
-  labs(x = NULL,
-       y = expression(bold("SLA (cm"^"-2"~"g"^"-1"~")")),
-       fill = "Inoculation status") +
-  pubtheme
-sla
-
-##########################################################################
-## Narea
-##########################################################################
-narea <- ggplot(data = data, aes(x = treatment, y = narea, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "narea" & comparison == "full"),
-            aes(y = 1.8, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0.6, 1.8), breaks = seq(0.6, 1.8, 0.4)) +
-  labs(x = NULL,
-       y = expression(bold("N"["area"]~"(g m"^"-2"~")")),
-       fill = "Inoculation status") +
-  pubtheme
-narea
-
-##########################################################################
-## A400
-##########################################################################
-a400 <- ggplot(data = data, aes(x = treatment, y = anet, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "a400" & comparison == "full"),
-            aes(y = 20, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0, 20), breaks = seq(0, 20, 5)) +
-  labs(x = NULL,
-       y = expression(bold("A"["net"]~"(μmol m"^"-2"~"s"^"-1"~")")),
-       fill = "Inoculation status") +
-  pubtheme +
-  theme(axis.text.x = element_blank())
-a400
-
-##########################################################################
-## Vcmax25
-##########################################################################
-vcmax <- ggplot(data = data, aes(x = treatment, y = vcmax25, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "vcmax25" & comparison == "full"),
-            aes(y = 110, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(30, 110), breaks = seq(30, 110, 20)) +
-  labs(x = NULL,
-       y = expression(bold("V"["cmax25"]~"(μmol m"^"-2"~"s"^"-1"~")")),
-       fill = "Inoculation status") +
-  pubtheme
-vcmax
-
-##########################################################################
-## Jmax25
-##########################################################################
-jmax <- ggplot(data = data, aes(x = treatment, y = jmax25, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "jmax25" & comparison == "full"),
-            aes(y = 110, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(30, 110), breaks = seq(30, 110, 20)) +
-  labs(x = NULL,
-       y = expression(bold("J"["max25"]~"(μmol m"^"-2"~"s"^"-1"~")")),
-       fill = "Inoculation status") +
-  pubtheme
-jmax
-
-##########################################################################
-## Jmax:Vcmax25
-##########################################################################
-jmax.vcmax <- ggplot(data = data, aes(x = treatment, 
-                                      y = jmax25.vcmax25, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "jmax25.vcmax25" & comparison == "full"),
-            aes(y = 1.6, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0.8, 1.6), breaks = seq(0.8, 1.6, 0.2)) +
-  labs(x = NULL,
-       y = expression(bold("J"["max25"]~": V"["cmax25"])),
-       fill = "Inoculation status") +
-  pubtheme
-jmax.vcmax
-
-##########################################################################
-## Rd 
-##########################################################################
-rd <- ggplot(data = data, aes(x = treatment, y = rd25, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, variable == "rd25" & comparison == "full"),
-            aes(y = 2, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0, 2), breaks = seq(0, 2, 0.5)) +
-  labs(x = NULL,
-       y = expression(bold("R"["d25"]~"(μmol m"^"-2"~"s"^"-1"~")")),
-       fill = "Inoculation status") +
-  pubtheme +
-  theme(axis.text.x = element_blank())
-rd
-
-##########################################################################
-## Rd25:Vcmax25
-##########################################################################
-rd.vcmax <- ggplot(data = data, aes(x = treatment, y = rd25.vcmax25, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 2, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "rd.vcmax" & comparison == "full"),
-            aes(y = 0.025, label = compact), fontface = "bold", size = 5) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0, 0.025), breaks = seq(0, 0.025, 0.005)) +
-  labs(x = "Soil nitrogen fertilization",
-       y = expression(bold("R"["d25"]~": V"["cmax25"])),
-       fill = "Inoculation status") +
-  pubtheme
-rd.vcmax
-
-##########################################################################
-## Stomatal conductance
-##########################################################################
-gs <- ggplot(data = data, aes(x = treatment, y = gsw, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 2, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "gs" & comparison == "full"),
-            aes(y = 0.31, label = compact), fontface = "bold", size = 5) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0.06, 0.31), breaks = seq(0.06, 0.31, 0.05)) +
-  labs(x = NULL,
-       y = expression(bold("g"["s400"]~"(μmol m"^"-2"~"s"^"-1"~")")),
-       fill = "Inoculation status") +
-  pubtheme
-gs
-
-##########################################################################
-## Ci:Ca
-##########################################################################
-cica <- ggplot(data = data, aes(x = treatment, y = ci.ca, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 2, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "ci.ca" & comparison == "full"),
-            aes(y = 1, label = compact), fontface = "bold", size = 5) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0.4, 0.9), breaks = seq(0.4, 0.9, 0.1)) +
-  labs(x = NULL,
-       y = expression(bold("C"["i"]~": C"["a"])),
-       fill = "Inoculation status") +
-  pubtheme
-cica
-
-##########################################################################
-## PNUE
-##########################################################################
-pnue <- ggplot(data = data, aes(x = treatment, y = pnue, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "pnue" & comparison == "full"),
-            aes(y = 20, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0, 20), breaks = seq(0, 20, 5)) +
-  labs(x = NULL,
-       y = expression(bold("PNUE (μmol CO"["2"]~" gN"^"-1"~"s"^"-1"~")")),
-       fill = "Inoculation status") +
-  pubtheme +
-  theme(axis.text.x = element_blank(),
-        axis.title.y = element_text(size = 15))
-pnue
-
-##########################################################################
-## iWUE
-##########################################################################
-iwue <- ggplot(data = data, aes(x = treatment, y = iwue, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "iwue" & comparison == "full"),
-            aes(y = 150, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(30, 150), breaks = seq(30, 150, 30)) +
-  labs(x = NULL,
-       y = expression(bold("iWUE (μmol CO"["2"]~"mol"^"-1"~"H"["2"]~"O)")),
-       fill = "Inoculation status") +
-  pubtheme +
-  theme(axis.text.x = element_blank(),
-        axis.title.y = element_text(size = 15))
-iwue
-
-##########################################################################
-## Narea:gs
-##########################################################################
-narea.gs <- ggplot(data = data, aes(x = treatment, y = narea.gs, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters,
-                          variable == "narea.gs" & comparison == "full"),
-            aes(y = 16, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0, 16), breaks = seq(0, 16, 4)) +
-  labs(x = NULL,
-       y = expression(bold("N"["area"]~":g"["s"]~"(gN s mol"^"-1"~"H"["2"]~"O)")),
-       fill = "Inoculation status") +
-  pubtheme +
-  theme(axis.title.y = element_text(size = 15))
-narea.gs
-
-##########################################################################
-## Vcmax:gs
-##########################################################################
-vcmax.gs <- ggplot(data = data, aes(x = treatment, y = vcmax.gs, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters,
-                          variable == "vcmax.gs" & comparison == "full"),
-            aes(y = 1000, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0, 1000), breaks = seq(00, 1000, 250)) +
-  labs(x = NULL,
-       y = expression(bold("V"["cmax"]~":g"["s"]~"(μmol CO"["2"]~"mol"^"-1"~"H"["2"]~"O)")),
-       fill = "Inoculation status") +
-  pubtheme +
-  theme(axis.title.y = element_text(size = 15))
-vcmax.gs
-
-##########################################################################
-## Total leaf area
-##########################################################################
-tla <- ggplot(data = data, aes(x = treatment, y = total.leaf.area, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "total.leaf.area" & comparison == "full"),
-            aes(y = 1500, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(300, 1500), breaks = seq(300, 1500, 300)) +
-  labs(x = NULL,
-       y = expression(bold("Total leaf area (cm"^"2"~")")),
-       fill = "Inoculation status") +
-  pubtheme
-tla
-
-##########################################################################
-## Total biomass
-##########################################################################
-tbio <- ggplot(data = data, aes(x = treatment, y = total.biomass, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
-  geom_text(data = subset(comp.letters, 
-                          variable == "total.biomass" & comparison == "full"),
-            aes(y = 8, label = compact), fontface = "bold", size = 7) +
-  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
-                                                    "Inoculated")) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
-  scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, 2)) +
-  labs(x = NULL,
-       y = "Whole plant biomass (g)",
-       fill = "Inoculation status") +
-  pubtheme
-tbio
-
-##########################################################################
-## Structural carbon costs to acquire nitrogen
-##########################################################################
-ncost <- ggplot(data = data, aes(x = treatment, y = n.cost, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
+ncost <- ggplot(data = data, aes(x = n.trt, y = n.cost, fill = inoc)) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
+               position = position_dodge(width = 0.75)) +
+  geom_boxplot(size = 0.75, outlier.shape = NA) +
+  geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
+              position = position_jitterdodge(jitter.width = 0.05, 
+                                              dodge.width = 0.75)) +
   geom_text(data = subset(comp.letters, variable == "ncost" & comparison == "full"),
-            aes(y = 12, label = .group), fontface = "bold", size = 7) +
+            aes(y = 12, label = .group), fontface = "bold", size = 7,
+            position = position_dodge(width = 0.75)) +
   scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 3)) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
+  scale_x_discrete(labels = c("70", "630")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
   labs(x = NULL,
@@ -413,14 +61,18 @@ ncost
 ##########################################################################
 ## Belowground carbon figure
 ##########################################################################
-bgc.plot <- ggplot(data = data, aes(x = treatment, y = bg.total.c, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
+bgc.plot <- ggplot(data = data, aes(x = n.trt, y = bg.total.c, fill = inoc)) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
+               position = position_dodge(width = 0.75)) +
+  geom_boxplot(size = 0.75, outlier.shape = NA) +
+  geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
+             position = position_jitterdodge(jitter.width = 0.05, 
+                                             dodge.width = 0.75)) +
   geom_text(data = subset(comp.letters, variable == "bgc" & comparison == "full"),
-            aes(y = 1.6, label = .group), fontface = "bold", size = 7) +
+            aes(y = 1.6, label = .group), fontface = "bold", size = 7,
+            position = position_dodge(0.75)) +
   scale_y_continuous(limits = c(0, 1.6), breaks = seq(0, 1.6, 0.4)) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
+  scale_x_discrete(labels = c("70", "630")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
   labs(x = NULL,
@@ -433,14 +85,18 @@ bgc.plot
 ##########################################################################
 ## Whole plant nitrogen
 ##########################################################################
-wpn.plot <- ggplot(data = data, aes(x = treatment, y = wp.total.n, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
+wpn.plot <- ggplot(data = data, aes(x = n.trt, y = wp.total.n, fill = inoc)) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
+               position = position_dodge(width = 0.75)) +
+  geom_boxplot(size = 0.75, outlier.shape = NA) +
+  geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
+              position = position_jitterdodge(jitter.width = 0.05, 
+                                              dodge.width = 0.75)) +
   geom_text(data = subset(comp.letters, variable == "wpn" & comparison == "full"),
-            aes(y = 0.28, label = .group), fontface = "bold", size = 7) +
+            aes(y = 0.28, label = .group), fontface = "bold", size = 7,
+            position = position_dodge(0.75)) +
   scale_y_continuous(limits = c(0, 0.28), breaks = seq(0, 0.28, 0.07)) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
+  scale_x_discrete(labels = c("70", "630")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
   labs(x = NULL,
@@ -449,18 +105,71 @@ wpn.plot <- ggplot(data = data, aes(x = treatment, y = wp.total.n, fill = inoc))
   pubtheme
 wpn.plot
 
+
+##########################################################################
+## Total leaf area
+##########################################################################
+tla <- ggplot(data = data, aes(x = n.trt, y = total.leaf.area, fill = inoc)) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
+               position = position_dodge(width = 0.75)) +
+  geom_boxplot(size = 0.75, outlier.shape = NA) +
+  geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
+             position = position_jitterdodge(jitter.width = 0.05, 
+                                             dodge.width = 0.75)) +
+  geom_text(data = subset(comp.letters, 
+                          variable == "total.leaf.area" & comparison == "full"),
+            aes(y = 1500, label = compact), fontface = "bold", size = 7,
+            position = position_dodge(0.75)) +
+  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
+                                                    "Inoculated")) +
+  scale_x_discrete(labels = c("70", "630")) +
+  scale_y_continuous(limits = c(300, 1500), breaks = seq(300, 1500, 300)) +
+  labs(x = NULL,
+       y = expression(bold("Total leaf area (cm"^"2"~")")),
+       fill = "Inoculation status") +
+  pubtheme
+tla
+
+##########################################################################
+## Total biomass
+##########################################################################
+tbio <- ggplot(data = data, aes(x = n.trt, y = total.biomass, fill = inoc)) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
+               position = position_dodge(width = 0.75)) +
+  geom_boxplot(size = 0.75, outlier.shape = NA) +
+  geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
+             position = position_jitterdodge(jitter.width = 0.05, 
+                                             dodge.width = 0.75)) +
+  geom_text(data = subset(comp.letters, 
+                          variable == "total.biomass" & comparison == "full"),
+            aes(y = 8, label = compact), fontface = "bold", size = 7,
+            position = position_dodge(0.75)) +
+  scale_fill_manual(values = cbbPalette, labels = c("Not inoculated", 
+                                                    "Inoculated")) +
+  scale_x_discrete(labels = c("70", "630")) +
+  scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, 2)) +
+  labs(x = NULL,
+       y = "Whole plant biomass (g)",
+       fill = "Inoculation status") +
+  pubtheme
+tbio
+
 ##########################################################################
 ## Root nodule biomass:root biomass figure
 ##########################################################################
-nodroot.plot <- ggplot(data = data, aes(x = treatment, 
+nodroot.plot <- ggplot(data = data, aes(x = n.trt, 
                                         y = nod.root.biomass, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
+               position = position_dodge(width = 0.75)) +
+  geom_boxplot(size = 0.75, outlier.shape = NA) +
+  geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
+             position = position_jitterdodge(jitter.width = 0.05, 
+                                             dodge.width = 0.75)) +
   geom_text(data = subset(comp.letters, variable == "nodroot" & comparison == "full"),
-            aes(y = 0.08, label = .group), fontface = "bold", size = 7) +
+            aes(y = 0.08, label = .group), fontface = "bold", size = 7,
+            position = position_dodge(0.75)) +
   scale_y_continuous(limits = c(0, 0.08), breaks = seq(0, 0.08, 0.02)) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
+  scale_x_discrete(labels = c("70", "630")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
   labs(x = NULL,
@@ -472,16 +181,20 @@ nodroot.plot
 ##########################################################################
 ## Root nodule biomass figure
 ##########################################################################
-nod.plot <- ggplot(data = data, aes(x = treatment, 
+nod.plot <- ggplot(data = data, aes(x = n.trt, 
                                     y = nodule.biomass,
                                     fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
+               position = position_dodge(width = 0.75)) +
+  geom_boxplot(size = 0.75, outlier.shape = NA) +
+  geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
+             position = position_jitterdodge(jitter.width = 0.05, 
+                                             dodge.width = 0.75)) +
   geom_text(data = subset(comp.letters, variable == "nod" & comparison == "full"),
-            aes(y = 0.1, label = .group), fontface = "bold", size = 7) +
+            aes(y = 0.1, label = .group), fontface = "bold", size = 7,
+            position = position_dodge(0.75)) +
   scale_y_continuous(limits = c(0, 0.1), breaks = seq(0, 0.1, 0.025)) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
+  scale_x_discrete(labels = c("70", "630")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
   labs(x = NULL,
@@ -494,16 +207,18 @@ nod.plot
 ##########################################################################
 ## Root biomass figure
 ##########################################################################
-root.plot <- ggplot(data = data, aes(x = treatment, 
-                                     y = root.biomass,
-                                     fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
+root.plot <- ggplot(data = data, aes(x = n.trt, y = root.biomass, fill = inoc)) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
+               position = position_dodge(width = 0.75)) +
+  geom_boxplot(size = 0.75, outlier.shape = NA) +
+  geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
+             position = position_jitterdodge(jitter.width = 0.05, 
+                                             dodge.width = 0.75)) +
   geom_text(data = subset(comp.letters, variable == "root" & comparison == "full"),
-            aes(y = 3, label = .group), fontface = "bold", size = 7) +
+            aes(y = 3, label = .group), fontface = "bold", size = 7,
+            position = position_dodge(0.75)) +
   scale_y_continuous(limits = c(0, 3), breaks = seq(0, 3, 1)) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
+  scale_x_discrete(labels = c("70", "630")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
   labs(x = NULL,
@@ -515,16 +230,18 @@ root.plot
 ##########################################################################
 ## BVR figure
 ##########################################################################
-bvr.plot <- ggplot(data = data, aes(x = treatment,
-                                    y = bvr, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
-  geom_boxplot(size = 0.75) +
-  geom_jitter(width = 0.05, size = 3, alpha = 0.5, show.legend = FALSE) +
+bvr.plot <- ggplot(data = data, aes(x = n.trt, y = bvr, fill = inoc)) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
+               position = position_dodge(width = 0.75)) +
+  geom_boxplot(size = 0.75, outlier.shape = NA) +
+  geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
+             position = position_jitterdodge(jitter.width = 0.05, 
+                                             dodge.width = 0.75)) +
   geom_text(data = subset(comp.letters, variable == "bvr" & comparison == "full"),
             aes(y = 2, label = .group), fontface = "bold", size = 7) +
   geom_hline(yintercept = 1, size = 1.5, linetype = "dashed") +
   scale_y_continuous(limits = c(0, 2), breaks = seq(0, 2, 0.5)) +
-  scale_x_discrete(labels = c("70", "70", "630", "630")) +
+  scale_x_discrete(labels = c("70", "630")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
   labs(x = "Soil nitrogen fertilization (ppm twice per week)",
