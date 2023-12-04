@@ -10,13 +10,6 @@ library(plantecophys)
 library(tidyverse)
 
 #####################################################################
-# Load temp standardization function for Vcmax/Jmax and leaf demand
-# function from Dong et al. (2022)
-#####################################################################
-source("/Users/eaperkowski/git/r_functions/temp_standardize.R")
-source("/Users/eaperkowski/git/r_functions/leafDemand.R")
-
-#####################################################################
 # Load and clean biomass, CN, fluorescence data
 #####################################################################
 ## Read in biomass file
@@ -135,213 +128,26 @@ leaf.traits <- leaf.area %>%
            into = c("rep", "n.trt", "inoc"),
            remove = FALSE) %>%
   mutate(rep = gsub("r", "", rep),
+         block = ifelse(rep == 1 | rep == 2 | rep == 3 | rep == 4, 1, 
+                        ifelse(rep == 5 | rep == 6 | rep == 7 | rep == 8,
+                               2, 
+                               ifelse(rep == 9 | rep == 10 | rep == 11 | rep == 12,
+                                      3, ifelse(rep == 13 | rep == 14 | rep == 15 | rep == 16, 4, 
+                                                NA)))),
          rep = str_pad(rep, width = 2, side = "left", pad = "0"),
          id = tolower(id),
-         total.leaf.area = focal.area + total.leaf.area) %>%
+         total.leaf.area = focal.area + total.leaf.area,
+         n.trt = ifelse(n.trt == "hn", 630, 70),
+         leaf.biomass = leaf.biomass + focal.biomass,
+         nod.root.biomass = nodule.biomass / root.biomass) %>%
   arrange(rep) %>%
-  dplyr::mutate(sla = (focal.area / focal.biomass), # SLA is in cm^2 g^-1
-                narea = (focal.n/100) / sla * 10000,
-                leaf.cn = focal.c / focal.n)
+  select(id, n.trt, inoc, rep, block, leaf.biomass:nod.root.biomass, total.biomass,
+         total.leaf.area, leaf.n:n.cost, bvr)
 
 ## Check data frame
 head(leaf.traits)
 
-#####################################################################
-# Determine respiration values - to later be merged to A/Ci files
-# to fit curves with explicit respiration
-#####################################################################
-## Load files into large list of data frames
-file.list <- list.files(path = "../licor_data_cleaned/resp/",
-                        recursive = TRUE,
-                        pattern = "\\.csv$",
-                        full.names = TRUE)
-file.list <- setNames(file.list, file.list)
-df.resp <- lapply(file.list, read.csv)
-
-## Merge data frames into single data frame, summarize respiration for each
-## ID (12 measurements per ID), change negative values to absolute numbers
-resp.merged <- df.resp %>%
-  merge_all() %>%
-  group_by(id) %>%
-  dplyr::select(id, A, TleafEB) %>%
-  mutate(resp = abs(A)) %>%
-  summarize(rd = mean(resp, na.rm = TRUE),
-            tleaf = mean(TleafEB, na.rm = TRUE),
-            rd25 = temp_standardize(rd,
-                                    estimate.type = "Rd",
-                                    pft = "C3H",
-                                    standard.to = 25,
-                                    tLeaf = tleaf,
-                                    tGrow = 30)) %>%
-  data.frame()
-resp.merged
-
-#####################################################################
-# Load A/Ci curves, put in central data frame, add respiration means,
-# then run fitacis function
-#####################################################################
-file.list <- list.files(path = "../licor_data_cleaned/aci",
-                        recursive = TRUE,
-                        pattern = "\\.csv$",
-                        full.names = TRUE)
-file.list <- setNames(file.list, file.list)
-df.aci <- lapply(file.list, read.csv)
-
-## Subset A/Ci curve to only columns necessary for 'fitaci'
-## function. Add respiration mean values to each ID. Also,
-## add keep row column and insert "no" when 400 ppm CO2 measurement
-## is recorded after a 2000 ppm CO2 measurement. This is to later remove
-## these values in the curve estimation
-aci.merged <- df.aci %>%
-  merge_all() %>%
-  group_by(id) %>%
-  dplyr::select(id, machine, A, Ci, Ca, gsw, 
-         CO2_s,	CO2_r,	H2O_s,	H2O_r,
-         Qin, VPDleaf, Flow,	Tair,	TleafEB) %>%
-  arrange(id) %>%
-  left_join(resp.merged, by = "id") %>%
-  separate(col = "id",
-           sep = "(_*)[_]_*",
-           into = c("rep", "n.trt", "inoc"),
-           remove = FALSE) %>%
-  group_by(id) %>%
-  mutate(rd.curvefit = temp_standardize(rd,
-                                        estimate.type = "Rd",
-                                        pft = "C3H",
-                                        standard.to = mean(TleafEB),
-                                        tLeaf = tleaf,
-                                        tGrow = 30),
-         rep = gsub("r", "", rep),
-         rep = str_pad(rep, width = 2, side = "left", pad = "0"),
-         keep.row = ifelse(lag(CO2_r > 1501, n = 1L),"no","yes"),
-         keep.row = tidyr::replace_na(keep.row, "yes")) %>%
-  data.frame()
-aci.merged
-
-## Remove rows based on A/Ci fits, and also include all points measured
-## at 0 ppm CO2. Workshop w/ Licor noted that 0ppm CO2 turns off mixing fan. 
-#aci.merged$keep.row[aci.merged$A < -1.5] <- "no"
-aci.merged$keep.row[c(31, 282, 340, 431, 444, 452, 487, 488, 489, 
-                      506, 620, 621, 692, 693, 694, 705, 938)] <- "no"
-
-#####################################################################
-# Rep 1 cluster
-#####################################################################
-aci.fits <- aci.merged %>% filter(keep.row == "yes") %>%
-  fitacis(group = "id",
-          varnames = list(ALEAF = "A",
-                         Tleaf = "TleafEB",
-                         Ci = "Ci",
-                         PPFD = "Qin", Rd = "rd.curvefit"),
-         fitTPU = FALSE, Tcorrect = FALSE, useRd = TRUE)
-
-photo.params <- coef(aci.fits) %>%
-  select(id:Jmax)
-
-
-#####################################################################
-## Extract coefficients and separate id into rep, n.trt, and inoc. 
-## Also formate rep number and add block number
-#####################################################################
-aci.coef <- photo.params %>%
-  separate(col = "id",
-           sep = "(_*)[_]_*",
-           into = c("rep", "n.trt", "inoc"),
-           remove = FALSE) %>%
-  mutate(rep = gsub("r", "", rep),
-         rep = str_pad(rep, width = 2, side = "left", pad = "0")) %>%
-  arrange(rep) %>%
-  mutate(block = rep(1:4, each = 16)) 
-
-
-#####################################################################
-# Import HOBO data, determine mean temp over experiment. Will be added
-# as additional column to aci.coef based on block number and used
-# for tGrow call in temp_standardize fxn
-#####################################################################
-file.list <- list.files(path = "../hobo_temp",
-                        recursive = TRUE,
-                        pattern = "\\.csv$",
-                        full.names = TRUE)
-file.list <- setNames(file.list, file.list)
-df.tgrow <- lapply(file.list, read.csv, strip.white = TRUE)
-
-aci.coef <- df.tgrow %>%
-  merge_all() %>%
-  group_by(block) %>%
-  dplyr::summarize(tGrow = mean(temp, na.rm = TRUE)) %>%
-  slice(-5) %>%
-  right_join(aci.coef, by = "block")
-
-#####################################################################
-# Extract A400, Ci:Ca, gsw values from each ID
-#####################################################################
-a.gs <- aci.merged %>%
-  group_by(id) %>%
-  filter(CO2_r > 350 & CO2_r < 425) %>%
-  filter(row_number() == 1) %>%
-  dplyr::select(id, rep, n.trt, inoc, machine, A, Ci, Ca, gsw) %>%
-  mutate(iwue = A / gsw,
-         ci.ca = Ci / Ca,
-         n.trt = tolower(n.trt),
-         inoc = tolower(inoc)) %>%
-  data.frame()
-a.gs
-
-#####################################################################
-# Merge respiration data, A/Ci coefficiencts, net photosynthesis
-# data files to leaf.traits data frame
-#####################################################################
-aci.coef <- aci.coef %>%
-  full_join(resp.merged) %>%
-  full_join(a.gs) %>%
-  full_join(leaf.traits) %>%
-  data.frame()
-
-
-#####################################################################
-# Add machine to aci.coef file
-#####################################################################
-aci.coef <- aci.merged %>%
-  group_by(id) %>%
-  summarize(leaf.temp = mean(TleafEB, na.rm = TRUE),
-            machine = unique(machine)) %>%
-  left_join(aci.coef) %>%
-  data.frame()
-
-## Check aci.coef data frame. Should have id, n.trt, inoc, machine, 
-## model coefficients, and block as designated columns
-head(aci.coef)
-
-#####################################################################
-# Standardize Vcmax and Jmax to 25 deg C
-#####################################################################
-aci.coef <- aci.coef %>%
-  group_by(id) %>%
-  dplyr::rename(Tleaf = leaf.temp) %>%
-  mutate(vcmax25 = temp_standardize(estimate = Vcmax,
-                                    estimate.type = "Vcmax",
-                                    standard.to = 25,
-                                    tLeaf = Tleaf,
-                                    tGrow = tGrow),
-         jmax25 = temp_standardize(estimate = Jmax,
-                                   estimate.type = "Jmax",
-                                   standard.to = 25,
-                                   tLeaf = Tleaf,
-                                   tGrow = tGrow),
-         rd25.vcmax25 = rd25 / vcmax25,
-         jmax25.vcmax25 = jmax25 / vcmax25,
-         vcmax.gs = Vcmax / gsw,
-         narea.gs = narea / gsw,
-         pnue = A / narea) %>%
-  dplyr::select(id, rep, n.trt, inoc, block, machine, anet = A, vcmax = Vcmax, 
-                vcmax25, jmax = Jmax, jmax25, rd, rd25, rd25.vcmax25, 
-                jmax25.vcmax25, gsw, ci.ca, pnue, iwue, vcmax.gs, narea.gs, 
-                sla, focal.area, focal.biomass, leaf.n, leaf.cn, narea, Tleaf,
-                everything(), -tleaf) %>%
-  dplyr::rename_all(tolower) %>%
-  data.frame()
 
 ## Write .csv file for leaf trait data
-write.csv(aci.coef, "../data/2021NxI_trait_data.csv", row.names = FALSE)
+write.csv(leaf.traits, "../data/2021NxI_trait_data.csv", row.names = FALSE)
 
