@@ -301,6 +301,7 @@ Anova(nod)
 # Pairwise comparisons
 emmeans(nod, pairwise~n.trt)
 emmeans(nod, pairwise~inoc, type = "response")
+emmeans(nod, pairwise~n.trt*inoc, type = "response")
 
 # Write data frame for compact lettering
 nod.pairwise.full <- data.frame(variable = "nod",
