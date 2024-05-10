@@ -75,7 +75,7 @@ bgc.plot <- ggplot(data = data, aes(x = n.trt, y = bg.total.c, fill = inoc)) +
   scale_fill_manual(values = cbbPalette, 
                     labels = c("Not inoculated", "Inoculated")) +
   labs(x = "Nitrogen fertilization treatment",
-       y = expression(bold("Belowground carbon biomass (gC)")),
+       y = expression(bold("Belowground biomass carbon (gC)")),
        fill = "Inoculation status") +
   pubtheme + theme(axis.title.y = element_text(size = 14))
 bgc.plot
