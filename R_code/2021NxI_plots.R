@@ -22,6 +22,7 @@ pubtheme <- theme_bw(base_size = 18) +
 ## Load data and add treatment column
 data <- read.csv("../data/2021NxI_trait_data.csv", na.strings = "NA") %>%
   unite("treatment", n.trt:inoc, remove = FALSE) %>%
+  filter(inoc == "yi" | (inoc == "ni" & nodule.biomass == 0)) %>%
   mutate(treatment = factor(treatment, levels = c("70_ni", "70_yi",
                                                   "630_ni", "630_yi")),
          n.trt = factor(n.trt, levels = c(70, 630)))
@@ -29,7 +30,9 @@ data <- read.csv("../data/2021NxI_trait_data.csv", na.strings = "NA") %>%
 ## Load compact letters data and add treatment column
 comp.letters <- read.csv("../data/2021NxI_compact_letters.csv",
                          na.strings = "<NA>") %>%
-  mutate(comparison = treatment)
+  mutate(treatment = factor(treatment, levels = c("70_ni", "70_yi",
+                                                  "630_ni", "630_yi")),
+         n.trt = factor(n.trt, levels = c(70, 630)))
 
 ## Add colorblind friendly palette
 cbbPalette <- c("#DDAA33", "#BB5566", "#004488", "#BBBBBB")
@@ -37,17 +40,19 @@ cbbPalette <- c("#DDAA33", "#BB5566", "#004488", "#BBBBBB")
 ##########################################################################
 ## Carbon costs to acquire nitrogen
 ##########################################################################
-ncost <- ggplot(data = data, aes(x = n.trt, y = n.cost, fill = inoc)) +
+ncost.plot <- ggplot(data = data, 
+                     aes(x = n.trt, y = n.cost, fill = inoc)) +
   stat_boxplot(linewidth = 0.75, geom = "errorbar", width = 0.25, 
                position = position_dodge(width = 0.75)) +
   geom_boxplot(size = 0.75, outlier.shape = NA) +
   geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
               position = position_jitterdodge(jitter.width = 0.05, 
                                               dodge.width = 0.75)) +
-  geom_text(data = subset(comp.letters, variable == "ncost" & comparison == "full"),
-            aes(y = 12, label = compact), fontface = "bold", size = 7,
+  geom_text(data = subset(comp.letters, variable == "ncost"),
+            aes(y = 12, label = .group), 
+            fontface = "bold", size = 7,
             position = position_dodge(width = 0.75)) +
-  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 3)) +
+  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 4)) +
   scale_x_discrete(labels = c("low N", "high N")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
@@ -55,7 +60,7 @@ ncost <- ggplot(data = data, aes(x = n.trt, y = n.cost, fill = inoc)) +
        y = expression(bold("Carbon cost to acquire nitrogen (gC gN"^"-1"~")")),
        fill = "Inoculation status") +
   pubtheme + theme(axis.title.y = element_text(size = 14))
-ncost
+ncost.plot
 
 ##########################################################################
 ## Belowground carbon figure
@@ -67,9 +72,10 @@ bgc.plot <- ggplot(data = data, aes(x = n.trt, y = bg.total.c, fill = inoc)) +
   geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
              position = position_jitterdodge(jitter.width = 0.05, 
                                              dodge.width = 0.75)) +
-  geom_text(data = subset(comp.letters, variable == "bgc" & comparison == "full"),
-            aes(y = 1.6, label = .group), fontface = "bold", size = 7,
-            position = position_dodge(0.75)) +
+  geom_text(data = subset(comp.letters, variable == "bgc"),
+            aes(y = 1.6, label = .group), 
+            fontface = "bold", size = 7,
+            position = position_dodge(width = 0.75)) +
   scale_y_continuous(limits = c(0, 1.6), breaks = seq(0, 1.6, 0.4)) +
   scale_x_discrete(labels = c("low N", "high N")) +
   scale_fill_manual(values = cbbPalette, 
@@ -90,8 +96,9 @@ wpn.plot <- ggplot(data = data, aes(x = n.trt, y = wp.total.n, fill = inoc)) +
   geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
               position = position_jitterdodge(jitter.width = 0.05, 
                                               dodge.width = 0.75)) +
-  geom_text(data = subset(comp.letters, variable == "wpn" & comparison == "full"),
-            aes(y = 0.28, label = .group), fontface = "bold", size = 7,
+  geom_text(data = subset(comp.letters, variable == "wpn"),
+            aes(y = 0.28, label = .group), 
+            fontface = "bold", size = 7,
             position = position_dodge(0.75)) +
   scale_y_continuous(limits = c(0, 0.28), breaks = seq(0, 0.28, 0.07)) +
   scale_x_discrete(labels = c("low N", "high N")) +
@@ -106,7 +113,7 @@ wpn.plot
 ##########################################################################
 ## Total leaf area
 ##########################################################################
-tla <- ggplot(data = data, aes(x = n.trt, y = total.leaf.area, fill = inoc)) +
+tla.plot <- ggplot(data = data, aes(x = n.trt, y = total.leaf.area, fill = inoc)) +
   stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
                position = position_dodge(width = 0.75)) +
   geom_boxplot(size = 0.75, outlier.shape = NA) +
@@ -114,8 +121,8 @@ tla <- ggplot(data = data, aes(x = n.trt, y = total.leaf.area, fill = inoc)) +
              position = position_jitterdodge(jitter.width = 0.05, 
                                              dodge.width = 0.75)) +
   geom_text(data = subset(comp.letters, 
-                          variable == "total.leaf.area" & comparison == "full"),
-            aes(y = 1500, label = compact), fontface = "bold", size = 7,
+                          variable == "total.leaf.area"),
+            aes(y = 1500, label = .group), fontface = "bold", size = 7,
             position = position_dodge(0.75)) +
   scale_y_continuous(limits = c(300, 1500), breaks = seq(300, 1500, 300)) +
   scale_x_discrete(labels = c("low N", "high N")) +
@@ -125,12 +132,12 @@ tla <- ggplot(data = data, aes(x = n.trt, y = total.leaf.area, fill = inoc)) +
        y = expression(bold("Total leaf area (cm"^"2"~")")),
        fill = "Inoculation status") +
   pubtheme
-tla
+tla.plot
 
 ##########################################################################
 ## Total biomass
 ##########################################################################
-tbio <- ggplot(data = data, aes(x = n.trt, y = total.biomass, fill = inoc)) +
+tbio.plot <- ggplot(data = data, aes(x = n.trt, y = total.biomass, fill = inoc)) +
   stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
                position = position_dodge(width = 0.75)) +
   geom_boxplot(size = 0.75, outlier.shape = NA) +
@@ -138,8 +145,8 @@ tbio <- ggplot(data = data, aes(x = n.trt, y = total.biomass, fill = inoc)) +
              position = position_jitterdodge(jitter.width = 0.05, 
                                              dodge.width = 0.75)) +
   geom_text(data = subset(comp.letters, 
-                          variable == "total.biomass" & comparison == "full"),
-            aes(y = 8, label = compact), fontface = "bold", size = 7,
+                          variable == "total.biomass"),
+            aes(y = 8, label = .group), fontface = "bold", size = 7,
             position = position_dodge(0.75)) +
   scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, 2)) +
   scale_x_discrete(labels = c("low N", "high N")) +
@@ -149,23 +156,21 @@ tbio <- ggplot(data = data, aes(x = n.trt, y = total.biomass, fill = inoc)) +
        y = "Total biomass (g)",
        fill = "Inoculation status") +
   pubtheme
-tbio
+tbio.plot
 
 ##########################################################################
 ## Root nodule biomass:root biomass figure
 ##########################################################################
-nodroot.plot <- ggplot(data = data, aes(x = n.trt, 
-                                        y = nod.root.biomass, fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
-               position = position_dodge(width = 0.75)) +
-  geom_boxplot(size = 0.75, outlier.shape = NA) +
+nodroot.plot <- ggplot(data = subset(data, inoc == "yi"), 
+                       aes(x = n.trt, y = nod.root.biomass)) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
+  geom_boxplot(size = 0.75, outlier.shape = NA, fill = cbbPalette[2], width = 0.375) +
   geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
-             position = position_jitterdodge(jitter.width = 0.05, 
-                                             dodge.width = 0.75)) +
-  geom_text(data = subset(comp.letters, variable == "nodroot" & comparison == "full"),
-            aes(y = 0.08, label = .group), fontface = "bold", size = 7,
-            position = position_dodge(0.75)) +
-  scale_y_continuous(limits = c(0, 0.08), breaks = seq(0, 0.08, 0.02)) +
+             position = position_jitter(width = 0.05),
+             fill = cbbPalette[2]) +
+  geom_text(data = subset(comp.letters, variable == "nodroot"),
+            aes(y = 0.1, label = .group), fontface = "bold", size = 7) +
+  scale_y_continuous(limits = c(0, 0.1), breaks = seq(0, 0.1, 0.025)) +
   scale_x_discrete(labels = c("low N", "high N")) +
   scale_fill_manual(values = cbbPalette, 
                     labels = c("Not inoculated", "Inoculated")) +
@@ -178,19 +183,16 @@ nodroot.plot
 ##########################################################################
 ## Root nodule biomass figure
 ##########################################################################
-nod.plot <- ggplot(data = data, aes(x = n.trt, 
-                                    y = nodule.biomass,
-                                    fill = inoc)) +
-  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25, 
-               position = position_dodge(width = 0.75)) +
-  geom_boxplot(size = 0.75, outlier.shape = NA) +
+nod.plot <- ggplot(data = subset(data, inoc == "yi"), 
+                   aes(x = n.trt, y = nodule.biomass)) +
+  stat_boxplot(size = 0.75, geom = "errorbar", width = 0.25) +
+  geom_boxplot(size = 0.75, outlier.shape = NA, fill = cbbPalette[2], width = 0.375) +
   geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
-             position = position_jitterdodge(jitter.width = 0.05, 
-                                             dodge.width = 0.75)) +
-  geom_text(data = subset(comp.letters, variable == "nod" & comparison == "full"),
-            aes(y = 0.1, label = .group), fontface = "bold", size = 7,
-            position = position_dodge(0.75)) +
-  scale_y_continuous(limits = c(0, 0.1), breaks = seq(0, 0.1, 0.025)) +
+             position = position_jitter(width = 0.05),
+             fill = cbbPalette[2]) +
+  geom_text(data = subset(comp.letters, variable == "nod"),
+            aes(y = 0.08, label = .group), fontface = "bold", size = 7) +
+  scale_y_continuous(limits = c(0, 0.08), breaks = seq(0, 0.08, 0.02)) +
   scale_x_discrete(labels = c("low N", "high N")) +
   scale_fill_manual(values = cbbPalette, 
                     labels = c("Not inoculated", "Inoculated")) +
@@ -210,7 +212,7 @@ root.plot <- ggplot(data = data, aes(x = n.trt, y = root.biomass, fill = inoc)) 
   geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
              position = position_jitterdodge(jitter.width = 0.05, 
                                              dodge.width = 0.75)) +
-  geom_text(data = subset(comp.letters, variable == "root" & comparison == "full"),
+  geom_text(data = subset(comp.letters, variable == "root"),
             aes(y = 3, label = .group), fontface = "bold", size = 7,
             position = position_dodge(0.75)) +
   scale_y_continuous(limits = c(0, 3), breaks = seq(0, 3, 1)) +
@@ -233,7 +235,7 @@ bvr.plot <- ggplot(data = data, aes(x = n.trt, y = bvr, fill = inoc)) +
   geom_point(size = 3, alpha = 0.5, show.legend = FALSE, shape = 21,
              position = position_jitterdodge(jitter.width = 0.05, 
                                              dodge.width = 0.75)) +
-  geom_text(data = subset(comp.letters, variable == "bvr" & comparison == "full"),
+  geom_text(data = subset(comp.letters, variable == "bvr"),
             aes(y = 2, label = .group), fontface = "bold", size = 7) +
   geom_hline(yintercept = 1, size = 1.5, linetype = "dashed") +
   scale_y_continuous(limits = c(0, 2), breaks = seq(0, 2, 0.5)) +
@@ -251,7 +253,7 @@ bvr.plot
 ##########################################################################
 png("../docs/figs/2021NxI_fig1_ncost.png",
     width = 13, height = 10, units = 'in', res = 600)
-ggarrange(ncost, bgc.plot, wpn.plot, ncol = 2, nrow = 2,
+ggarrange(ncost.plot, bgc.plot, wpn.plot, ncol = 2, nrow = 2,
           align = "hv", common.legend = T, legend = "right",
           labels = "AUTO", vjust = 1,
           font.label = list(size = 18, face = "bold"))
@@ -262,7 +264,7 @@ dev.off()
 ##########################################################################
 png("../docs/figs/2021NxI_fig2_tla.png",
     width = 12, height = 4.5, units = 'in', res = 600)
-ggarrange(tla, tbio, ncol = 2, 
+ggarrange(tla.plot, tbio.plot, ncol = 2, 
           common.legend = TRUE, align = "hv", legend = "right", 
           labels = "AUTO",
           font.label = list(size = 18, face = "bold"), widths = 1)
