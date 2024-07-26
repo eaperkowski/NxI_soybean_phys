@@ -165,7 +165,7 @@ tbio.pairwise.full <- data.frame(variable = "total.biomass",
 ## Nodule biomass : root biomass
 ##########################################################################
 nod.root <- lmer(nod.root.biomass ~ n.trt + (1 | block), 
-                 data = subset(data, inoc == "yi"))
+                 data = data)
 
 # Check model assumptions
 plot(nod.root)
