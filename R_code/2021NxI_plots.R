@@ -52,7 +52,7 @@ ncost.plot <- ggplot(data = data,
             aes(y = 12, label = .group), 
             fontface = "bold", size = 7,
             position = position_dodge(width = 0.75)) +
-  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 4)) +
+  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 3)) +
   scale_x_discrete(labels = c("low N", "high N")) +
   scale_fill_manual(values = cbbPalette, labels = c("Not inoculated",
                                                     "Inoculated")) +
@@ -105,7 +105,7 @@ wpn.plot <- ggplot(data = data, aes(x = n.trt, y = wp.total.n, fill = inoc)) +
   scale_fill_manual(values = cbbPalette, 
                     labels = c("Not inoculated", "Inoculated")) +
   labs(x = "Nitrogen fertilization treatment",
-       y = expression(bold("Total nitrogen biomass (gN)")),
+       y = expression(bold("Whole-plant nitrogen biomass (gN)")),
        fill = "Inoculation status") +
   pubtheme + theme(axis.title.y = element_text(size = 14))
 wpn.plot
@@ -236,7 +236,8 @@ bvr.plot <- ggplot(data = data, aes(x = n.trt, y = bvr, fill = inoc)) +
              position = position_jitterdodge(jitter.width = 0.05, 
                                              dodge.width = 0.75)) +
   geom_text(data = subset(comp.letters, variable == "bvr"),
-            aes(y = 2, label = .group), fontface = "bold", size = 7) +
+            aes(y = 2, label = .group), fontface = "bold", size = 7,
+            position = position_dodge(0.75)) +
   geom_hline(yintercept = 1, size = 1.5, linetype = "dashed") +
   scale_y_continuous(limits = c(0, 2), breaks = seq(0, 2, 0.5)) +
   scale_x_discrete(labels = c("low N", "high N")) +

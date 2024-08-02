@@ -219,7 +219,8 @@ nod.pairwise.full <- data.frame(variable = "nod",
 ##########################################################################
 ## Root biomass
 ##########################################################################
-root <- lmer(log(root.biomass) ~ n.trt * inoc + (1 | block), data = data)
+root <- lmer(log(root.biomass) ~ n.trt * inoc + (1 | block), 
+             data = data)
 
 # Check model assumptions
 plot(root)
